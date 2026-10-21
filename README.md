@@ -223,6 +223,7 @@ tests/
   engine.test.ts            Reglas y estados especiales (27 pruebas)
   ai.test.ts                Legalidad y comportamiento de la IA (10 pruebas)
   ui.flow.test.tsx          Flujo de interfaz y textos de resultado (9 pruebas)
+  components.test.tsx       Tablero, promoción y panel de resultado (6 pruebas)
   worker.test.ts            Contrato del worker, respaldo y duraciones (4 pruebas)
 scripts/
   render-pieces.tsx         Utilidad: genera docs/pieces-preview.png
@@ -256,6 +257,11 @@ Cubren, entre otras cosas:
 - Bloqueo durante la animación: no se duplican jugadas.
 - Flujo de interfaz: inicio, selección, movimiento, respuesta de la IA,
   confirmación de reinicio, ajustes.
+- Componentes: 32 casillas claras y 32 oscuras, marcas de movimiento y captura,
+  rey en jaque, tablero deshabilitado durante la animación, diálogo de promoción
+  con las cuatro piezas, textos de resultado.
+- Worker de la IA: contrato de mensajes, respaldo sin worker y duración de
+  animaciones.
 
 No sustituyen a probar en un teléfono real: jsdom no reproduce animaciones,
 audio ni comportamiento táctil del sistema.
@@ -288,7 +294,7 @@ No se ha generado ningún APK, ni anuncios, ni pagos, ni publicación.
 
 1. **No he podido ver la interfaz en un navegador real ni en un teléfono.**
    Este entorno no tiene navegador gráfico. Sí he ejecutado compilación de
-   tipos, empaquetado, las 50 pruebas automatizadas (incluidas pruebas de flujo
+   tipos, empaquetado, las 56 pruebas automatizadas (incluidas pruebas de flujo
    con jsdom) y he servido la app con Vite. El aspecto visual, el tacto y el
    audio deben validarse en tu teléfono.
 2. El audio no se ha escuchado en dispositivo: el volumen y el equilibrio
