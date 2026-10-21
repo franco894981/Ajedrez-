@@ -12,6 +12,7 @@ movimientos, capturas ni ninguna regla del ajedrez.
   necesaria después de cargar la página.
 
 Arte previo de las piezas: `docs/pieces-preview.png`.
+Lista de comprobación para el teléfono: `docs/pruebas-en-telefono.md`.
 
 ---
 
@@ -229,6 +230,7 @@ scripts/
   render-pieces.tsx         Utilidad: genera docs/pieces-preview.png
 docs/
   pieces-preview.png        Vista previa del arte de las piezas
+  pruebas-en-telefono.md    Lista de comprobación para probar en Android
 ```
 
 La separación pedida se respeta: **reglas** (`src/game/`), **IA**
