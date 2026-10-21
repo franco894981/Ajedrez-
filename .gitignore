@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Compilados
+dist/
+dist-ssr/
+*.local
+
+# Registros y temporales
+*.log
+.DS_Store
+Thumbs.db
+
+# Entornos y editores
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+
+# Pruebas
+coverage/
+tsconfig.tsbuildinfo

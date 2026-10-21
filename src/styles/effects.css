@@ -1,0 +1,344 @@
+.fx {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.fx--w {
+  --fx-hot: #fff3d6;
+  --fx-warm: #ffab5e;
+  --fx-cool: #ffe6b8;
+}
+
+.fx--b {
+  --fx-hot: #ffb08a;
+  --fx-warm: #f2502a;
+  --fx-cool: #ffc7a0;
+}
+
+.fx > span {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: block;
+}
+
+/* Polvo de llegada */
+.fx__dust {
+  width: 42%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(226, 206, 178, 0.4), rgba(160, 140, 118, 0.12) 55%, transparent 72%);
+  animation: dust 480ms ease-out forwards;
+}
+
+.fx__step {
+  width: 22%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 236, 206, 0.45);
+  animation: stepRing 300ms ease-out forwards;
+}
+
+/* Peón: corte de espada */
+.fx__slash {
+  width: 112%;
+  aspect-ratio: 1;
+  animation: slash 420ms ease-out forwards;
+}
+
+.fx__slash svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.fx__slash-a,
+.fx__slash-b {
+  fill: none;
+  stroke: var(--fx-hot);
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 7px var(--fx-warm));
+}
+
+.fx__slash-a {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: draw 220ms ease-out forwards;
+}
+
+.fx__slash-b {
+  opacity: 0.7;
+  stroke-width: 3;
+  stroke-dasharray: 110;
+  stroke-dashoffset: 110;
+  animation: draw 260ms 60ms ease-out forwards;
+}
+
+/* Torre: proyectil y explosión localizada */
+.fx__projectile {
+  left: var(--x1);
+  top: var(--y1);
+  width: 3.4%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--fx-hot);
+  box-shadow: 0 0 10px 3px var(--fx-warm);
+  animation: projectile 320ms linear forwards;
+}
+
+.fx__boom {
+  width: 58%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--fx-hot) 0%,
+    var(--fx-warm) 26%,
+    rgba(214, 92, 38, 0.55) 46%,
+    rgba(90, 60, 44, 0.25) 62%,
+    transparent 74%
+  );
+  mix-blend-mode: screen;
+  animation: boom 560ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+.fx__smoke {
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120, 108, 96, 0.42) 0%, rgba(70, 62, 56, 0.2) 45%, transparent 70%);
+  animation: smoke 760ms ease-out forwards;
+}
+
+/* Alfil: línea de precisión */
+.fx__beam {
+  height: 2px;
+  margin-top: -1px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, rgba(255, 246, 220, 0.2), var(--fx-hot) 35%, var(--fx-warm) 85%, transparent 100%);
+  box-shadow: 0 0 8px var(--fx-warm);
+  animation: beam 300ms ease-out forwards;
+}
+
+.fx__beam--energy {
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(255, 230, 190, 0.35), #fff6df 28%, var(--fx-warm) 70%, transparent 100%);
+  box-shadow: 0 0 16px 4px var(--fx-warm);
+  animation: beam 420ms ease-out forwards;
+}
+
+.fx__impact {
+  width: 36%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--fx-hot) 0 14%, var(--fx-warm) 30%, transparent 66%);
+  mix-blend-mode: screen;
+  animation: impact 340ms ease-out forwards;
+}
+
+.fx__impact--energy {
+  width: 48%;
+  animation-duration: 460ms;
+}
+
+.fx__ring {
+  width: 24%;
+  aspect-ratio: 1;
+  border: 3px solid var(--fx-warm);
+  border-radius: 50%;
+  box-shadow: 0 0 14px var(--fx-warm);
+  animation: ringOut 460ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+.fx__ring--wide {
+  border-color: rgba(255, 176, 120, 0.8);
+  animation-duration: 620ms;
+}
+
+.fx__ring--energy {
+  border-color: var(--fx-hot);
+  animation-duration: 520ms;
+}
+
+/* Caballo: fogonazo de escopeta */
+.fx__flash {
+  width: 44%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, #fffdf2 0 12%, var(--fx-hot) 26%, var(--fx-warm) 44%, transparent 68%);
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  animation: flash 260ms ease-out forwards;
+}
+
+.fx__flash--shotgun {
+  width: 56%;
+  animation-duration: 320ms;
+}
+
+/* Rey: fogonazo y trazadora */
+.fx__tracer {
+  height: 2px;
+  margin-top: -1px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, #fffdf5, var(--fx-warm) 70%, transparent);
+  box-shadow: 0 0 6px var(--fx-warm);
+  animation: beam 220ms ease-out forwards;
+}
+
+/* Variantes reducidas: mismos gestos, mucho más breves y contenidos */
+.fx--reduced .fx__dust,
+.fx--reduced .fx__step,
+.fx--reduced .fx__slash,
+.fx--reduced .fx__boom,
+.fx--reduced .fx__smoke,
+.fx--reduced .fx__beam,
+.fx--reduced .fx__impact,
+.fx--reduced .fx__ring,
+.fx--reduced .fx__flash,
+.fx--reduced .fx__tracer {
+  animation-duration: 140ms;
+}
+
+.fx--reduced .fx__projectile {
+  display: none;
+}
+
+@keyframes dust {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes stepRing {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes slash {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-8deg) scale(1.2);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(2deg) scale(1);
+  }
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes projectile {
+  0% {
+    left: var(--x1);
+    top: var(--y1);
+    opacity: 1;
+  }
+  100% {
+    left: var(--x2);
+    top: var(--y2);
+    opacity: 0.9;
+  }
+}
+
+@keyframes boom {
+  0% {
+    transform: translate(-50%, -50%) scale(0.18);
+    opacity: 1;
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.45);
+    opacity: 0;
+  }
+}
+
+@keyframes smoke {
+  0% {
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 0;
+  }
+}
+
+@keyframes beam {
+  0% {
+    transform: rotate(var(--angle)) scaleX(0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  70% {
+    transform: rotate(var(--angle)) scaleX(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: rotate(var(--angle)) scaleX(1);
+    opacity: 0;
+  }
+}
+
+@keyframes impact {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0;
+  }
+}
+
+@keyframes ringOut {
+  0% {
+    transform: translate(-50%, -50%) scale(0.25);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes flash {
+  0% {
+    transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5) rotate(18deg);
+    opacity: 0;
+  }
+}

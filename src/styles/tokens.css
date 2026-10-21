@@ -1,0 +1,42 @@
+:root {
+  color-scheme: dark;
+
+  /* Paleta por defecto (el escenario la sobrescribe vía applyTheme). */
+  --sky-top: #0b0a09;
+  --sky-bottom: #241b16;
+  --fog: #3a2c22;
+  --sq-light: #6b6156;
+  --sq-dark: #332d28;
+  --board-frame: #191614;
+  --ally-piece: #ddd5c4;
+  --ally-piece-dark: #9b9283;
+  --ally-weapon: #8d8b85;
+  --enemy-piece: #402a24;
+  --enemy-piece-dark: #241816;
+  --enemy-weapon: #b06a3e;
+  --ember: #ff8a3d;
+  --accent: #f0c47a;
+
+  --ink: #f4eee3;
+  --ink-dim: #c9bdab;
+  --ink-muted: #948a7c;
+  --panel: rgba(17, 14, 12, 0.86);
+  --panel-soft: rgba(30, 25, 21, 0.72);
+  --panel-border: rgba(240, 196, 122, 0.18);
+  --panel-border-strong: rgba(240, 196, 122, 0.4);
+  --danger: #e2573a;
+  --danger-soft: rgba(226, 87, 58, 0.18);
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --focus-ring: 0 0 0 3px rgba(240, 196, 122, 0.55);
+}

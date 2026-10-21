@@ -1,0 +1,107 @@
+import type { Settings } from '../settings'
+import { DEFAULT_SCENARIO } from '../../theme/scenarios'
+import { PieceArt } from './PieceArt'
+import { Icon, Toggle } from './Common'
+import type { PieceType } from '../../game/types'
+
+interface Props {
+  settings: Settings
+  onPlay: () => void
+  onToggleMusic: () => void
+  onToggleSfx: () => void
+  onToggleReducedMotion: () => void
+}
+
+const PARADE: PieceType[] = ['p', 'r', 'n', 'b', 'q', 'k']
+
+export function StartScreen({
+  settings,
+  onPlay,
+  onToggleMusic,
+  onToggleSfx,
+  onToggleReducedMotion,
+}: Props) {
+  return (
+    <main className="start">
+      <div className="start__crest" aria-hidden="true">
+        <svg viewBox="0 0 120 70">
+          <path
+            className="crest__shield"
+            d="M60 4 16 15v22c0 15 18 26 44 32 26-6 44-17 44-32V15Z"
+          />
+          <path className="crest__crack" d="M60 10 56 26 64 34 58 48 62 60" />
+          <path className="crest__sword" d="M18 62 44 36M26 34l8-2 2 8-8 2zM76 62 102 36" />
+        </svg>
+      </div>
+
+      <p className="start__kicker">Ajedrez · Guerra apocalíptica</p>
+      <h1 className="start__title">
+        <span className="start__title-line">THE LAST</span>
+        <span className="start__title-line start__title-line--accent">CHECKMATE</span>
+      </h1>
+      <p className="start__subtitle">Ashen Warfare</p>
+
+      <div className="start__parade" aria-hidden="true">
+        {PARADE.map((type) => (
+          <span key={type} className="start__parade-piece">
+            <PieceArt type={type} color="w" />
+          </span>
+        ))}
+      </div>
+
+      <section className="start__panel" aria-label="Inicio de partida">
+        <div className="start__info">
+          <div className="start__info-row">
+            <span className="start__info-label">Escenario</span>
+            <span className="start__info-value">{DEFAULT_SCENARIO.name}</span>
+          </div>
+          <div className="start__info-row">
+            <span className="start__info-label">Dificultad</span>
+            <span className="start__info-value">
+              <span className="chip chip--ember">Prototipo</span>
+            </span>
+          </div>
+          <p className="start__info-tagline">{DEFAULT_SCENARIO.tagline}</p>
+        </div>
+
+        <button type="button" className="button button--primary button--large" onClick={onPlay}>
+          <Icon name="play" size={22} />
+          Jugar
+        </button>
+        <p className="start__hint">
+          Juegas con las <strong>blancas</strong> contra la IA. Toca una pieza y después una casilla
+          resaltada.
+        </p>
+
+        <div className="start__toggles">
+          <Toggle
+            icon="music"
+            label="Música"
+            description="Ambiente oscuro original"
+            checked={settings.music}
+            onChange={onToggleMusic}
+          />
+          <Toggle
+            icon="sound"
+            label="Efectos"
+            description="Disparos, cortes y explosiones"
+            checked={settings.sfx}
+            onChange={onToggleSfx}
+          />
+          <Toggle
+            icon="motion"
+            label="Animaciones reducidas"
+            description="Menos movimiento y efectos"
+            checked={settings.reducedMotion}
+            onChange={onToggleReducedMotion}
+          />
+        </div>
+      </section>
+
+      <footer className="start__footer">
+        <Icon name="sword" size={14} />
+        <span>Las armas son decorativas: se juega al ajedrez clásico.</span>
+      </footer>
+    </main>
+  )
+}

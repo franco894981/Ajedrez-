@@ -1,0 +1,18 @@
+{
+  "name": "The Last Checkmate: Ashen Warfare",
+  "short_name": "Last Checkmate",
+  "description": "Ajedrez clásico contra la IA en una ciudad en ruinas.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0c0a09",
+  "theme_color": "#0c0a09",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
