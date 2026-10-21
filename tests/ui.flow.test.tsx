@@ -159,3 +159,33 @@ describe('flujo de la interfaz', () => {
     expect(document.documentElement.dataset.reducedMotion).toBe('true')
   })
 })
+
+describe('textos de resultado', () => {
+  it('distingue jaque mate, ahogado y tablas reclamadas', async () => {
+    const { describeEnd } = await import('../src/ui/endText')
+
+    const mate = describeEnd(
+      { result: '0-1', reason: 'checkmate', winner: 'b', automatic: true },
+      'w',
+    )
+    const stalemate = describeEnd(
+      { result: '1/2-1/2', reason: 'stalemate', winner: null, automatic: true },
+      'w',
+    )
+    const claimed = describeEnd(
+      { result: '1/2-1/2', reason: 'claim-threefold', winner: null, automatic: false },
+      'w',
+    )
+
+    expect(mate.tone).toBe('loss')
+    expect(mate.title).toBe('Derrota')
+    expect(mate.reasonLabel).toBe('Jaque mate')
+    expect(stalemate.tone).toBe('draw')
+    expect(stalemate.reasonLabel).toBe('Ahogado')
+    expect(claimed.reasonLabel).toMatch(/reclamadas/i)
+
+    const win = describeEnd({ result: '1-0', reason: 'checkmate', winner: 'w', automatic: true }, 'w')
+    expect(win.title).toBe('Victoria')
+    expect(win.tone).toBe('win')
+  })
+})

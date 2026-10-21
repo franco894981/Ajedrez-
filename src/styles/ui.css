@@ -426,6 +426,14 @@
   backdrop-filter: blur(4px);
 }
 
+.status__side--b .status__side-text {
+  color: var(--ember);
+}
+
+.status__side--w .status__side-text {
+  color: var(--ink-dim);
+}
+
 .status__side {
   display: flex;
   align-items: center;
