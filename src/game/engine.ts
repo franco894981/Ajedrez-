@@ -263,6 +263,7 @@ export class GameSession {
   choosePromotion(type: PieceType): MoveOutcome {
     const pending = this.pendingPromotion
     if (!pending) return { ok: false, error: 'promotion-required' }
+    if (this.locked) return { ok: false, error: 'locked' }
     if (!isPromotionType(type)) return { ok: false, error: 'promotion-required' }
     this.pendingPromotion = null
     const outcome = this.applyMove({ from: pending.from, to: pending.to, promotion: type }, pending.color)
@@ -286,6 +287,9 @@ export class GameSession {
 
   applyMove(input: MoveInput, byColor: Color): MoveOutcome {
     if (this.getStatus().isOver) return { ok: false, error: 'game-over' }
+    if (this.locked) return { ok: false, error: 'locked' }
+    // Durante la promoción solo la elección del diálogo puede concluir la jugada.
+    if (this.pendingPromotion) return { ok: false, error: 'promotion-required' }
     if (this.chess.turn() !== byColor) return { ok: false, error: 'not-your-turn' }
 
     const piece = this.chess.get(input.from as ChessSquare)
@@ -315,6 +319,7 @@ export class GameSession {
   }
 
   claimDraw(kind: 'threefold' | 'fifty-move'): boolean {
+    if (this.locked || this.pendingPromotion) return false
     const status = this.getStatus()
     if (status.isOver) return false
     if (status.turn !== this.humanColor) return false

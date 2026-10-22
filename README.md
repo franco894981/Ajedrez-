@@ -152,7 +152,9 @@ Efectos de captura (`src/ui/effects/`), breves y distintos:
 | Dama | Rayo de energía |
 | Rey | Fogonazo de revólver y trazadora |
 
-Las explosiones son solo visuales: nunca eliminan piezas adicionales. No hay
+Los destellos son de escala local (aprox. una casilla, con una expansión breve)
+y se dibujan por debajo de las piezas para no ocultar sus siluetas. Las
+explosiones son solo visuales: nunca eliminan piezas adicionales. No hay
 disparos independientes del movimiento, daño de área, fuego amigo, munición ni
 vida.
 
@@ -166,8 +168,8 @@ instantáneos, efectos de ~140 ms y fondo sin brasas ni pulsos.
   animación es un `transform` sobre piezas ya colocadas en su casilla final.
 - La pieza capturada se muestra desvaneciéndose como "fantasma" temporal que no
   existe en el estado.
-- El bloqueo (`locked`) impide toques nuevos hasta terminar; el temporizador se
-  cancela al reiniciar.
+- El bloqueo (`locked`) impide toques y también rechaza movimientos directos
+  del motor o de la IA hasta terminar; el temporizador se cancela al reiniciar.
 
 ---
 
@@ -221,7 +223,7 @@ src/
   audio/AudioEngine.ts      AUDIO sintetizado
   styles/                   tokens, base, fondo, tablero, piezas, efectos, UI
 tests/
-  engine.test.ts            Reglas y estados especiales (27 pruebas)
+  engine.test.ts            Reglas y estados especiales (28 pruebas)
   ai.test.ts                Legalidad y comportamiento de la IA (10 pruebas)
   ui.flow.test.tsx          Flujo de interfaz y textos de resultado (9 pruebas)
   components.test.tsx       Tablero, promoción y panel de resultado (6 pruebas)
@@ -296,7 +298,7 @@ No se ha generado ningún APK, ni anuncios, ni pagos, ni publicación.
 
 1. **No he podido ver la interfaz en un navegador real ni en un teléfono.**
    Este entorno no tiene navegador gráfico. Sí he ejecutado compilación de
-   tipos, empaquetado, las 56 pruebas automatizadas (incluidas pruebas de flujo
+   tipos, empaquetado, las 57 pruebas automatizadas (incluidas pruebas de flujo
    con jsdom) y he servido la app con Vite. El aspecto visual, el tacto y el
    audio deben validarse en tu teléfono.
 2. El audio no se ha escuchado en dispositivo: el volumen y el equilibrio

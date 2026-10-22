@@ -1,7 +1,12 @@
+/*
+ * Las medidas son relativas al tablero completo: una casilla ocupa 12.5%.
+ * Mantener los destellos alrededor de ese tamaño evita tapar casillas vecinas.
+ */
 .fx {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  /* Debajo de las piezas (z-index: 2): los destellos no las tapan. */
+  z-index: 1;
   pointer-events: none;
   overflow: visible;
 }
@@ -26,7 +31,7 @@
 
 /* Polvo de llegada */
 .fx__dust {
-  width: 42%;
+  width: 9%;
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(226, 206, 178, 0.4), rgba(160, 140, 118, 0.12) 55%, transparent 72%);
@@ -34,7 +39,7 @@
 }
 
 .fx__step {
-  width: 22%;
+  width: 6%;
   aspect-ratio: 1;
   border-radius: 50%;
   border: 1px solid rgba(255, 236, 206, 0.45);
@@ -43,7 +48,7 @@
 
 /* Peón: corte de espada */
 .fx__slash {
-  width: 112%;
+  width: 14%;
   aspect-ratio: 1;
   animation: slash 420ms ease-out forwards;
 }
@@ -90,7 +95,7 @@
 }
 
 .fx__boom {
-  width: 58%;
+  width: 12%;
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(
@@ -106,7 +111,7 @@
 }
 
 .fx__smoke {
-  width: 78%;
+  width: 14%;
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(120, 108, 96, 0.42) 0%, rgba(70, 62, 56, 0.2) 45%, transparent 70%);
@@ -133,7 +138,7 @@
 }
 
 .fx__impact {
-  width: 36%;
+  width: 9%;
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(circle, var(--fx-hot) 0 14%, var(--fx-warm) 30%, transparent 66%);
@@ -142,12 +147,12 @@
 }
 
 .fx__impact--energy {
-  width: 48%;
+  width: 11%;
   animation-duration: 460ms;
 }
 
 .fx__ring {
-  width: 24%;
+  width: 8%;
   aspect-ratio: 1;
   border: 3px solid var(--fx-warm);
   border-radius: 50%;
@@ -167,7 +172,7 @@
 
 /* Caballo: fogonazo de escopeta */
 .fx__flash {
-  width: 44%;
+  width: 8%;
   aspect-ratio: 1;
   background: radial-gradient(circle, #fffdf2 0 12%, var(--fx-hot) 26%, var(--fx-warm) 44%, transparent 68%);
   border-radius: 50%;
@@ -176,7 +181,7 @@
 }
 
 .fx__flash--shotgun {
-  width: 56%;
+  width: 10%;
   animation-duration: 320ms;
 }
 
