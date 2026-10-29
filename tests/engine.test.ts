@@ -92,6 +92,17 @@ describe('selección táctil', () => {
     expect(game.getTurn()).toBe('b')
   })
 
+  it('rechaza también movimientos directos de la IA durante el bloqueo', () => {
+    const game = newGame()
+    expect(game.applyMove({ from: 'e2', to: 'e4' }, 'w').ok).toBe(true)
+    game.setLocked(true)
+    const before = game.getFen()
+
+    const outcome = game.playAIMove({ from: 'e7', to: 'e5' })
+    expect(outcome).toEqual({ ok: false, error: 'locked' })
+    expect(game.getFen()).toBe(before)
+  })
+
   it('un mismo destino no se puede jugar dos veces (sin duplicados)', () => {
     const game = newGame()
     game.tapSquare('e2')
@@ -187,8 +198,18 @@ describe('movimientos especiales', () => {
     const pending = game.getSnapshot().pendingPromotion
     expect(pending).not.toBeNull()
     expect(pending?.choices).toEqual(['q', 'r', 'b', 'n'])
-    // Con la promoción pendiente no se aceptan más toques.
+    // Con la promoción pendiente no se aceptan más toques ni movimientos directos.
     expect(game.tapSquare('e1')).toBe(false)
+    const fenWhilePending = game.getFen()
+    expect(game.applyMove({ from: 'e1', to: 'e2' }, 'w').error).toBe('promotion-required')
+    expect(game.getFen()).toBe(fenWhilePending)
+
+    // Si la sesión está ocupada, no se pierde la elección pendiente.
+    game.setLocked(true)
+    expect(game.choosePromotion('n').error).toBe('locked')
+    expect(game.getSnapshot().pendingPromotion).not.toBeNull()
+    game.setLocked(false)
+
     const outcome = game.choosePromotion('n')
     expect(outcome.ok).toBe(true)
     expect(outcome.move?.promotion).toBe('n')

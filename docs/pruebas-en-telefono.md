@@ -37,6 +37,10 @@ navegador gráfico ni audio.
 - [ ] El rey en jaque se resalta y aparece la etiqueta “Jaque”.
 - [ ] Una captura muestra el efecto del arma y termina con tu pieza en la
       casilla capturada.
+- [ ] Peón: corte diagonal blanco sobre la víctima.
+- [ ] Torre: proyectil y explosión/humo concentrados en la casilla capturada.
+- [ ] Alfil: línea de precisión; caballo: fogonazo al aterrizar.
+- [ ] Reina: rayo violeta/cian y desintegración visual; rey: fogonazo con humo.
 - [ ] El último movimiento queda resaltado.
 - [ ] Enroque: mueve el rey dos casillas y la torre salta al otro lado.
 - [ ] Captura al paso: el peón desaparece de su casilla original.
@@ -55,9 +59,11 @@ navegador gráfico ni audio.
 
 ## Audio
 
-- [ ] La música **no** suena antes de pulsar “Jugar” o cualquier botón.
-- [ ] Después del primer toque se oye el ambiente y los efectos.
-- [ ] Los interruptores de música y efectos silencian cada canal por separado.
+- [ ] Al cargar, ni al tocar Efectos u otro control, empieza la música.
+- [ ] “Jugar” inicia la música cuando el ajuste Música está activado.
+- [ ] Activar Música la inicia; apagarla la desvanece y la detiene.
+- [ ] Los efectos de movimiento/captura siguen audibles y bajan un poco mientras
+      suena la música; su interruptor sigue siendo independiente.
 - [ ] Al cambiar de pestaña o bloquear el teléfono el audio se detiene y vuelve.
 
 ## Rendimiento

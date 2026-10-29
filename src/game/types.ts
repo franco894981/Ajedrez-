@@ -93,6 +93,7 @@ export interface MoveOutcome {
 
 export type MoveError =
   | 'game-over'
+  | 'locked'
   | 'not-your-turn'
   | 'no-piece'
   | 'opponent-piece'

@@ -199,13 +199,24 @@
   animation: ghostKick 460ms ease-out forwards;
 }
 
+/* La reina convierte la desaparición de la víctima en una desintegración breve. */
+.piece--ghost-energy {
+  animation: energyGhostOut 620ms ease-out forwards;
+}
+
+.piece--ghost-energy .piece__inner {
+  animation: energyGhostKick 620ms ease-out forwards;
+}
+
 .board--reduced .piece {
   transition: none;
 }
 
 .board--reduced .piece__inner--hop,
 .board--reduced .piece--ghost,
-.board--reduced .piece--ghost .piece__inner {
+.board--reduced .piece--ghost .piece__inner,
+.board--reduced .piece--ghost-energy,
+.board--reduced .piece--ghost-energy .piece__inner {
   animation-duration: 140ms;
 }
 
@@ -245,6 +256,33 @@
   }
   100% {
     transform: scale(0.7) rotate(14deg) translateY(10%);
+  }
+}
+
+@keyframes energyGhostOut {
+  0% {
+    opacity: 0.95;
+    filter: saturate(1) hue-rotate(0deg) brightness(0.95) blur(0);
+  }
+  42% {
+    opacity: 0.82;
+    filter: saturate(1.8) hue-rotate(150deg) brightness(1.45) blur(0);
+  }
+  100% {
+    opacity: 0;
+    filter: saturate(1.4) hue-rotate(190deg) brightness(2) blur(4px);
+  }
+}
+
+@keyframes energyGhostKick {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  48% {
+    transform: scale(0.8) rotate(12deg);
+  }
+  100% {
+    transform: scale(0.14) rotate(32deg);
   }
 }
 

@@ -17,7 +17,8 @@ export default function App() {
     applyTheme(DEFAULT_SCENARIO)
   }, [])
 
-  // El audio se crea solo tras un gesto del usuario.
+  // Desbloquea Web Audio para los efectos tras un gesto, sin iniciar música.
+  // La banda sonora se activa únicamente desde Jugar o el control Música.
   useEffect(() => {
     const unlock = () => audio.unlock()
     window.addEventListener('pointerdown', unlock, { once: true })
@@ -29,9 +30,8 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    audio.setMusicEnabled(settings.music)
     audio.setSfxEnabled(settings.sfx)
-  }, [settings.music, settings.sfx])
+  }, [settings.sfx])
 
   // Si la pestaña pasa a segundo plano, se pausa el audio para ahorrar batería.
   useEffect(() => {
@@ -43,8 +43,14 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [settings.music, settings.sfx])
 
+  const handlePlay = () => {
+    audio.unlock()
+    audio.setMusicEnabled(settings.music)
+    game.startNewGame()
+  }
   const handleToggleMusic = () => {
     audio.unlock()
+    audio.setMusicEnabled(!settings.music)
     toggleMusic()
   }
   const handleToggleSfx = () => {
@@ -58,7 +64,7 @@ export default function App() {
       {game.screen === 'inicio' ? (
         <StartScreen
           settings={settings}
-          onPlay={game.startNewGame}
+          onPlay={handlePlay}
           onToggleMusic={handleToggleMusic}
           onToggleSfx={handleToggleSfx}
           onToggleReducedMotion={toggleReducedMotion}

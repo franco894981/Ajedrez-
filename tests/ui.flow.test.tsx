@@ -8,6 +8,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { audio } from '../src/audio/AudioEngine'
 import App from '../src/App'
 
 function clickSquare(square: string) {
@@ -146,12 +147,42 @@ describe('flujo de la interfaz', () => {
     expect(pieceOn('d4')).toBeTruthy()
   })
 
-  it('permite desactivar música, efectos y animaciones reducidas', async () => {
+  it('no inicia música al cargar ni tocar otros controles; Jugar la activa si está habilitada', () => {
+    const setMusicEnabled = vi.spyOn(audio, 'setMusicEnabled')
+    render(<App />)
+    expect(setMusicEnabled).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('switch', { name: /disparos/i }))
+    expect(setMusicEnabled).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: /jugar/i }))
+    expect(setMusicEnabled).toHaveBeenCalledWith(true)
+  })
+
+  it('respeta el ajuste Música apagado al tocar Jugar', () => {
+    window.localStorage.setItem(
+      'tlc.settings.v1',
+      JSON.stringify({ music: false, sfx: true, reducedMotion: false }),
+    )
+    const setMusicEnabled = vi.spyOn(audio, 'setMusicEnabled')
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /jugar/i }))
+
+    expect(setMusicEnabled).toHaveBeenCalledWith(false)
+  })
+
+  it('permite activar y detener la música y cambiar las demás preferencias', async () => {
+    const setMusicEnabled = vi.spyOn(audio, 'setMusicEnabled')
     render(<App />)
     const music = screen.getByRole('switch', { name: /música/i })
     expect(music.getAttribute('aria-checked')).toBe('true')
     fireEvent.click(music)
     expect(music.getAttribute('aria-checked')).toBe('false')
+    expect(setMusicEnabled).toHaveBeenLastCalledWith(false)
+    fireEvent.click(music)
+    expect(music.getAttribute('aria-checked')).toBe('true')
+    expect(setMusicEnabled).toHaveBeenLastCalledWith(true)
 
     const reduced = screen.getByRole('switch', { name: /animaciones reducidas/i })
     fireEvent.click(reduced)

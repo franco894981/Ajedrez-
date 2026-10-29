@@ -12,12 +12,12 @@ export const TRAVEL_MS: Record<PieceType, number> = {
 
 /** Duración de los efectos de captura por tipo de atacante (ms). */
 export const CAPTURE_FX_MS: Record<PieceType, number> = {
-  p: 420,
-  n: 460,
-  b: 360,
-  r: 680,
-  q: 500,
-  k: 400,
+  p: 520,
+  n: 520,
+  b: 520,
+  r: 700,
+  q: 620,
+  k: 520,
 }
 
 export function travelDuration(piece: PieceType, reducedMotion: boolean): number {
