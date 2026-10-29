@@ -1,0 +1,45 @@
+/*
+ * Las piezas se dibujan con atributos SVG propios (ver PieceArt.tsx), así que
+ * aquí solo se controla tamaño y proporción. Esto hace que el arte no dependa
+ * de la hoja de estilos y se pueda reutilizar al exportar imágenes.
+ */
+.art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: scale(var(--art-scale, 1));
+  transform-origin: 50% 84%;
+}
+
+.piece--p {
+  --art-scale: 0.92;
+}
+
+.piece--n,
+.piece--b {
+  --art-scale: 0.98;
+}
+
+.piece--r {
+  --art-scale: 0.95;
+}
+
+.piece--q {
+  --art-scale: 1.01;
+}
+
+.piece--k {
+  --art-scale: 1.02;
+}
+
+/* Las piezas negras llevan un resplandor de brasa muy contenido. */
+.art--b .art__eye,
+.art--b .art__weapon circle {
+  filter: drop-shadow(0 0 2px rgba(255, 110, 45, 0.5));
+}
+
+/* En las piezas blancas el ojo es una marca apenas visible. */
+.art--w .art__eye {
+  opacity: 0.4;
+}
