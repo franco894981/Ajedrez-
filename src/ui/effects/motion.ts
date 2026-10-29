@@ -1,32 +1,49 @@
 import type { AppliedMove, PieceType } from '../../game/types'
 
-/** Duración de la animación de traslado por tipo de pieza (ms). */
+/** Deslizamiento corto y uniforme para que toda pieza llegue en 0,22 s. */
 export const TRAVEL_MS: Record<PieceType, number> = {
-  p: 240,
-  n: 360,
-  b: 300,
-  r: 380,
-  q: 340,
-  k: 300,
+  p: 220,
+  n: 220,
+  b: 220,
+  r: 220,
+  q: 220,
+  k: 220,
 }
 
-/** Duración de los efectos de captura por tipo de atacante (ms). */
+/** Tiempo máximo de los efectos de captura, contado desde que la pieza aterriza. */
 export const CAPTURE_FX_MS: Record<PieceType, number> = {
   p: 520,
   n: 520,
-  b: 520,
-  r: 700,
-  q: 620,
+  b: 560,
+  r: 760,
+  q: 680,
   k: 520,
 }
 
+/** Desfase entre el inicio del arma y el impacto visible de la víctima. */
+export function impactOffset(piece: PieceType, reducedMotion: boolean): number {
+  if (reducedMotion) return 0
+  switch (piece) {
+    case 'b':
+      return 100
+    case 'r':
+      return 260
+    case 'q':
+      return 250
+    default:
+      return 0
+  }
+}
+
 export function travelDuration(piece: PieceType, reducedMotion: boolean): number {
-  return reducedMotion ? 0 : TRAVEL_MS[piece] ?? 280
+  return reducedMotion ? 0 : TRAVEL_MS[piece] ?? 220
 }
 
 export function moveDuration(applied: AppliedMove, reducedMotion: boolean): number {
   if (reducedMotion) return applied.captured ? 200 : 130
-  const travel = TRAVEL_MS[applied.piece] ?? 280
-  const capture = applied.captured ? CAPTURE_FX_MS[applied.piece] ?? 380 : 0
-  return Math.max(travel, capture) + 80
+  const travel = TRAVEL_MS[applied.piece] ?? 220
+  if (!applied.captured) return travel + 80
+  const capture = CAPTURE_FX_MS[applied.piece] ?? 520
+  // Se serializan deslizamiento e impacto; el pequeño margen evita cortar el último frame.
+  return travel + capture + 20
 }

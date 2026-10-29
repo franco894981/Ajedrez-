@@ -1,17 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Backdrop } from './ui/components/Backdrop'
 import { GameScreen } from './ui/components/GameScreen'
 import { StartScreen } from './ui/components/StartScreen'
 import { useSettings } from './ui/settings'
 import { useGame } from './ui/useGame'
 import { audio } from './audio/AudioEngine'
-import { DEFAULT_SCENARIO, getScenario } from './theme/scenarios'
+import { getScenario } from './theme/scenarios'
 import { applyTheme } from './theme/applyTheme'
 
 export default function App() {
-  const { settings, toggleMusic, toggleSfx, toggleReducedMotion } = useSettings()
-  const [scenarioId, setScenarioId] = useState(DEFAULT_SCENARIO.id)
-  const scenario = getScenario(scenarioId)
+  const {
+    settings,
+    toggleMusic,
+    toggleSfx,
+    toggleReducedMotion,
+    selectDifficulty,
+    selectScenario,
+  } = useSettings()
+  const scenario = getScenario(settings.scenarioId)
   const game = useGame(settings)
 
   // El escenario solo configura la presentación; no interviene en la partida.
@@ -67,7 +73,8 @@ export default function App() {
         <StartScreen
           settings={settings}
           scenario={scenario}
-          onSelectScenario={setScenarioId}
+          onSelectScenario={selectScenario}
+          onSelectDifficulty={selectDifficulty}
           onPlay={handlePlay}
           onToggleMusic={handleToggleMusic}
           onToggleSfx={handleToggleSfx}

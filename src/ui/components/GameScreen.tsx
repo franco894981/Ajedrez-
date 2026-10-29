@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { useGame } from '../useGame'
 import type { Settings } from '../settings'
 import type { ScenarioTheme } from '../../theme/types'
+import { DIFFICULTIES } from '../../game/ai/difficulty'
+import { travelDuration } from '../effects/motion'
 import { Board } from './Board'
 import { Icon } from './Common'
 import { PromotionDialog } from './PromotionDialog'
@@ -51,6 +53,7 @@ export function GameScreen({ game, settings, scenario, onToggleMusic, onToggleSf
   const claimThreefold = status.claimable.threefoldRepetition
   const claimFifty = status.claimable.fiftyMoveRule
   const captureShake = Boolean(activeMove?.applied.captured) && !settings.reducedMotion
+  const captureShakeDelay = captureShake && activeMove ? `${travelDuration(activeMove.applied.piece, false)}ms` : undefined
 
   const [checkBannerId, setCheckBannerId] = useState(0)
   const [showCheckBanner, setShowCheckBanner] = useState(false)
@@ -103,7 +106,11 @@ export function GameScreen({ game, settings, scenario, onToggleMusic, onToggleSf
 
   return (
     <>
-      <div className={`game ${captureShake ? 'game--capture-hit' : ''}`} data-scenario={scenario.id}>
+      <div
+        className={`game ${captureShake ? 'game--capture-hit' : ''}`}
+        style={captureShakeDelay ? { animationDelay: captureShakeDelay } : undefined}
+        data-scenario={scenario.id}
+      >
         <header className="game__top">
           <button
             type="button"
@@ -159,8 +166,8 @@ export function GameScreen({ game, settings, scenario, onToggleMusic, onToggleSf
               <span className="badge badge--check">{humanInCheck ? 'Jaque' : 'Jaque al rival'}</span>
             )}
           </div>
-          <span className="chip chip--quiet">
-            IA <strong>Prototipo</strong>
+          <span className="chip chip--quiet" aria-label={`Dificultad de la IA: ${DIFFICULTIES[settings.difficulty].label}`}>
+            IA <strong>{DIFFICULTIES[settings.difficulty].label}</strong>
           </span>
         </section>
 

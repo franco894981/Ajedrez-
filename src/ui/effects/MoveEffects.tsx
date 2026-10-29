@@ -11,7 +11,7 @@
 import type { CSSProperties } from 'react'
 import type { ActiveMove } from '../useGame'
 import type { Square } from '../../game/types'
-import { travelDuration } from './motion'
+import { impactOffset, travelDuration } from './motion'
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
@@ -38,6 +38,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
   const type = motion.pieceType
   const captured = Boolean(applied.captured)
   const landingDelay = travelDuration(applied.piece, reducedMotion)
+  const impactDelay = landingDelay + impactOffset(applied.piece, reducedMotion)
   const projectileDuration = reducedMotion ? 0 : 260
 
   const dx = to.x - from.x
@@ -59,8 +60,14 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
       aria-hidden="true"
     >
       {/* Polvo al llegar: feedback discreto también sin captura. */}
-      <span className="fx__dust" style={{ left: pct(to.x), top: pct(to.y) }} />
-      <span className="fx__step" style={{ left: pct(to.x), top: pct(to.y) }} />
+      <span
+        className="fx__dust"
+        style={{ left: pct(to.x), top: pct(to.y), animationDelay: `${landingDelay}ms` }}
+      />
+      <span
+        className="fx__step"
+        style={{ left: pct(to.x), top: pct(to.y), animationDelay: `${landingDelay}ms` }}
+      />
 
       {captured && (
         <span
@@ -68,7 +75,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
           style={{
             left: pct(impact.x),
             top: pct(impact.y),
-            animationDelay: `${landingDelay}ms`,
+            animationDelay: `${impactDelay}ms`,
           }}
         />
       )}
@@ -106,6 +113,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
                 '--x2': pct(impact.x),
                 '--y2': pct(impact.y),
                 animationDuration: `${projectileDuration}ms`,
+                animationDelay: `${landingDelay}ms`,
               } as CSSProperties
             }
           />
@@ -114,7 +122,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
             style={{
               left: pct(impact.x),
               top: pct(impact.y),
-              animationDelay: `${projectileDuration}ms`,
+              animationDelay: `${landingDelay + projectileDuration}ms`,
             }}
           />
           <span
@@ -122,7 +130,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
             style={{
               left: pct(impact.x),
               top: pct(impact.y),
-              animationDelay: `${projectileDuration}ms`,
+              animationDelay: `${landingDelay + projectileDuration}ms`,
             }}
           />
           <span
@@ -130,7 +138,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
             style={{
               left: pct(impact.x),
               top: pct(impact.y),
-              animationDelay: `${projectileDuration}ms`,
+              animationDelay: `${landingDelay + projectileDuration}ms`,
             }}
           />
         </>
@@ -138,13 +146,16 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
 
       {captured && type === 'b' && (
         <>
-          <span className="fx__beam fx__beam--precision" style={beamStyle} />
+          <span
+            className="fx__beam fx__beam--precision"
+            style={{ ...beamStyle, animationDelay: `${landingDelay}ms` }}
+          />
           <span
             className="fx__impact fx__impact--precision"
             style={{
               left: pct(impact.x),
               top: pct(impact.y),
-              animationDelay: `${reducedMotion ? 0 : 100}ms`,
+              animationDelay: `${impactDelay}ms`,
             }}
           />
         </>
@@ -174,13 +185,16 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
 
       {captured && type === 'q' && (
         <>
-          <span className="fx__beam fx__beam--energy" style={beamStyle} />
+          <span
+            className="fx__beam fx__beam--energy"
+            style={{ ...beamStyle, animationDelay: `${landingDelay}ms` }}
+          />
           <span
             className="fx__impact fx__impact--energy"
             style={{
               left: pct(impact.x),
               top: pct(impact.y),
-              animationDelay: `${reducedMotion ? 0 : 250}ms`,
+              animationDelay: `${impactDelay}ms`,
             }}
           />
           <span
@@ -188,7 +202,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
             style={{
               left: pct(impact.x),
               top: pct(impact.y),
-              animationDelay: `${reducedMotion ? 0 : 250}ms`,
+              animationDelay: `${impactDelay}ms`,
             }}
           />
         </>
@@ -198,7 +212,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
         <>
           <span
             className="fx__flash fx__flash--revolver"
-            style={{ left: pct(from.x), top: pct(from.y) }}
+            style={{ left: pct(from.x), top: pct(from.y), animationDelay: `${landingDelay}ms` }}
           />
           <span
             className="fx__tracer"
@@ -207,6 +221,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
                 left: pct(from.x),
                 top: pct(from.y),
                 width: pct(length * 0.85),
+                animationDelay: `${landingDelay}ms`,
                 '--angle': `${angle.toFixed(2)}deg`,
               } as CSSProperties
             }
@@ -216,7 +231,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
             style={{
               left: pct(impact.x),
               top: pct(impact.y),
-              animationDelay: `${landingDelay}ms`,
+              animationDelay: `${impactDelay}ms`,
             }}
           />
           <span
@@ -224,7 +239,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
             style={{
               left: pct(impact.x),
               top: pct(impact.y),
-              animationDelay: `${landingDelay}ms`,
+              animationDelay: `${impactDelay}ms`,
             }}
           />
         </>

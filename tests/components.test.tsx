@@ -174,7 +174,11 @@ describe('tablero', () => {
 
     const energyGhost = document.querySelector('.piece--ghost-energy') as HTMLElement
     expect(energyGhost).toBeTruthy()
-    expect(energyGhost.style.animationDelay).toBe('250ms')
+    expect(energyGhost.style.animationDelay).toBe('470ms')
+    expect((document.querySelector('.board') as HTMLElement).style.getPropertyValue('--travel')).toBe(
+      '220ms',
+    )
+    expect(document.querySelector('.piece--moving')).toBeTruthy()
     expect(document.querySelector('.fx--q .fx__beam--energy')).toBeTruthy()
     expect(document.querySelector('.fx--q .fx__impact--energy')).toBeTruthy()
   })
@@ -237,11 +241,33 @@ describe('impactos de pantalla y jaque', () => {
       onToggleReducedMotion: () => {},
     }
     const { container, rerender } = render(
-      <GameScreen {...props} settings={{ music: false, sfx: false, reducedMotion: false }} />,
+      <GameScreen
+        {...props}
+        settings={{
+          music: false,
+          sfx: false,
+          reducedMotion: false,
+          difficulty: 'prototipo',
+          scenarioId: DEFAULT_SCENARIO.id,
+        }}
+      />,
     )
 
-    expect(container.querySelector('.game')?.classList.contains('game--capture-hit')).toBe(true)
-    rerender(<GameScreen {...props} settings={{ music: false, sfx: false, reducedMotion: true }} />)
+    const gameElement = container.querySelector('.game') as HTMLElement
+    expect(gameElement.classList.contains('game--capture-hit')).toBe(true)
+    expect(gameElement.style.animationDelay).toBe('220ms')
+    rerender(
+      <GameScreen
+        {...props}
+        settings={{
+          music: false,
+          sfx: false,
+          reducedMotion: true,
+          difficulty: 'prototipo',
+          scenarioId: DEFAULT_SCENARIO.id,
+        }}
+      />,
+    )
     expect(container.querySelector('.game')?.classList.contains('game--capture-hit')).toBe(false)
   })
 
@@ -252,7 +278,13 @@ describe('impactos de pantalla y jaque', () => {
     const props = {
       game: gameView(session),
       scenario: DEFAULT_SCENARIO,
-      settings: { music: false, sfx: false, reducedMotion: false },
+      settings: {
+        music: false,
+        sfx: false,
+        reducedMotion: false,
+        difficulty: 'prototipo' as const,
+        scenarioId: DEFAULT_SCENARIO.id,
+      },
       onToggleMusic: () => {},
       onToggleSfx: () => {},
       onToggleReducedMotion: () => {},
@@ -277,9 +309,10 @@ describe('efectos de captura', () => {
     expect(projectile.style.getPropertyValue('--x1')).toBe('6.250%')
     expect(projectile.style.getPropertyValue('--x2')).toBe('56.250%')
     expect(projectile.style.animationDuration).toBe('260ms')
-    expect(boom.style.animationDelay).toBe('260ms')
+    expect(projectile.style.animationDelay).toBe('220ms')
+    expect(boom.style.animationDelay).toBe('480ms')
     expect(smoke.style.left).toBe('56.25%')
-    expect(smoke.style.animationDelay).toBe('260ms')
+    expect(smoke.style.animationDelay).toBe('480ms')
   })
 
   it('dispara el láser instantáneo del alfil con un destello de precisión', () => {
@@ -290,19 +323,22 @@ describe('efectos de captura', () => {
     expect(beam.style.left).toBe('31.25%')
     expect(beam.style.top).toBe('93.75%')
     expect(beam.style.getPropertyValue('--angle')).not.toBe('')
+    expect(beam.style.animationDelay).toBe('220ms')
     expect(impact.style.left).toBe('56.25%')
     expect(impact.style.top).toBe('81.25%')
-    expect(impact.style.animationDelay).toBe('100ms')
+    expect(impact.style.animationDelay).toBe('320ms')
   })
 
   it('sincroniza el rayo púrpura con el impacto de energía de la dama', () => {
     const { container } = render(<MoveEffects activeMove={visualCapture('q')} reducedMotion={false} />)
-    expect(container.querySelector('.fx--q .fx__beam--energy')).toBeTruthy()
+    expect((container.querySelector('.fx--q .fx__beam--energy') as HTMLElement).style.animationDelay).toBe(
+      '220ms',
+    )
     expect((container.querySelector('.fx__impact--energy') as HTMLElement).style.animationDelay).toBe(
-      '250ms',
+      '470ms',
     )
     expect((container.querySelector('.fx__ring--energy') as HTMLElement).style.animationDelay).toBe(
-      '250ms',
+      '470ms',
     )
   })
 
@@ -310,19 +346,21 @@ describe('efectos de captura', () => {
     const { container } = render(<MoveEffects activeMove={visualCapture('n')} reducedMotion={false} />)
     const flash = container.querySelector('.fx__flash--shotgun') as HTMLElement
     expect(flash).toBeTruthy()
-    expect(flash.style.animationDelay).toBe('360ms')
+    expect(flash.style.animationDelay).toBe('220ms')
     expect(flash.style.getPropertyValue('--angle')).not.toBe('')
     expect(container.querySelector('.fx__ring--shotgun')).toBeTruthy()
   })
 
   it('da al rey un fogonazo amarillo y humo blanco en la víctima', () => {
     const { container } = render(<MoveEffects activeMove={visualCapture('k')} reducedMotion={false} />)
-    const flash = container.querySelector('.fx__flash--revolver')
+    const flash = container.querySelector('.fx__flash--revolver') as HTMLElement
+    const tracer = container.querySelector('.fx__tracer') as HTMLElement
     const smoke = container.querySelector('.fx__smoke--revolver') as HTMLElement
-    expect(flash).toBeTruthy()
+    expect(flash.style.animationDelay).toBe('220ms')
+    expect(tracer.style.animationDelay).toBe('220ms')
     expect(smoke.style.left).toBe('56.25%')
     expect(smoke.style.top).toBe('81.25%')
-    expect(smoke.style.animationDelay).toBe('300ms')
+    expect(smoke.style.animationDelay).toBe('220ms')
   })
 
   it('sitúa el corte del peón en la víctima al capturar al paso', () => {
@@ -357,10 +395,10 @@ describe('efectos de captura', () => {
     const flash = container.querySelector('.fx__capture-flash') as HTMLElement
     expect(slash.style.left).toBe('43.75%')
     expect(slash.style.top).toBe('43.75%')
-    expect(slash.style.animationDelay).toBe('240ms')
+    expect(slash.style.animationDelay).toBe('220ms')
     expect(flash.style.left).toBe('43.75%')
     expect(flash.style.top).toBe('43.75%')
-    expect(flash.style.animationDelay).toBe('240ms')
+    expect(flash.style.animationDelay).toBe('220ms')
   })
 })
 

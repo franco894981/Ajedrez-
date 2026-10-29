@@ -10,6 +10,18 @@ navegador gráfico ni audio.
 2. Abre la URL `Network` que imprime Vite desde el teléfono, en la misma Wi-Fi.
 3. Orientación recomendada: vertical.
 
+## Dificultad y preferencias
+
+- [ ] La pantalla inicial ofrece **Prototipo** y **Veterano**, con una sola
+      opción activa y su descripción visible.
+- [ ] Al iniciar en Veterano, el marcador de la partida dice **IA Veterano**;
+      en Prototipo debe decir **IA Prototipo**.
+- [ ] Selecciona **Refugio Militar** y **Veterano**, recarga la página y
+      confirma que ambas selecciones siguen activas.
+- [ ] En una posición táctica, compara ambos perfiles: Veterano debe buscar
+      hasta 3 semijugadas y evitar dejar la dama a tiro en la prueba incluida.
+      Reproducción automatizada: `npx vitest run tests/ai.test.ts -t Veterano`.
+
 ## Escenarios
 
 - [ ] El selector ofrece **Ciudad de Ceniza**, **Refugio Militar** y
@@ -41,12 +53,16 @@ navegador gráfico ni audio.
 - [ ] Tocar una pieza negra no la selecciona.
 - [ ] Tocar otra pieza propia cambia la selección.
 - [ ] Tocar la misma pieza deselecciona.
+- [ ] La pieza se desliza suavemente del origen al destino durante unos 220 ms.
+- [ ] En una captura, el deslizador llega primero y el efecto del arma empieza
+      al aterrizar; no se pisan ni se adelantan.
 - [ ] Durante la animación no se puede mover otra pieza (no se duplican jugadas).
 - [ ] En ningún momento hace falta arrastrar ni mantener pulsado.
 
 ## Reglas
 
-- [ ] La IA responde en menos de ~2 segundos tras tu jugada.
+- [ ] Prototipo responde con rapidez; Veterano puede pensar hasta ~1,8 s y no
+      congela el tablero (el cálculo va al worker cuando está disponible).
 - [ ] No puedes mover una pieza que deje tu rey en jaque: esas casillas no
       aparecen marcadas.
 - [ ] El rey en jaque se resalta y aparece la etiqueta “Jaque”.
