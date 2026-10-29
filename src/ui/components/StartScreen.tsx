@@ -1,5 +1,6 @@
 import type { Settings } from '../settings'
 import { SCENARIO_LIST } from '../../theme/scenarios'
+import { DIFFICULTIES, DIFFICULTY_LIST } from '../../game/ai/difficulty'
 import type { ScenarioTheme } from '../../theme/types'
 import { PieceArt } from './PieceArt'
 import { Icon, Toggle } from './Common'
@@ -9,6 +10,7 @@ interface Props {
   settings: Settings
   scenario: ScenarioTheme
   onSelectScenario: (id: string) => void
+  onSelectDifficulty: (difficulty: Settings['difficulty']) => void
   onPlay: () => void
   onToggleMusic: () => void
   onToggleSfx: () => void
@@ -21,6 +23,7 @@ export function StartScreen({
   settings,
   scenario,
   onSelectScenario,
+  onSelectDifficulty,
   onPlay,
   onToggleMusic,
   onToggleSfx,
@@ -63,7 +66,7 @@ export function StartScreen({
           <div className="start__info-row">
             <span className="start__info-label">Dificultad</span>
             <span className="start__info-value">
-              <span className="chip chip--ember">Prototipo</span>
+              <span className="chip chip--ember">{DIFFICULTIES[settings.difficulty].label}</span>
             </span>
           </div>
           <p className="start__info-tagline">{scenario.tagline}</p>
@@ -86,6 +89,25 @@ export function StartScreen({
                   aria-hidden="true"
                 />
                 <span className="start__scenario-choice-name">{option.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="start__difficulty-picker">
+          <span className="start__scenario-picker-label">Elige la dificultad de la IA</span>
+          <div className="start__difficulty-choices" role="group" aria-label="Seleccionar dificultad de la IA">
+            {DIFFICULTY_LIST.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className="start__difficulty-choice"
+                aria-label={`Elegir dificultad ${option.label}`}
+                aria-pressed={settings.difficulty === option.id}
+                onClick={() => onSelectDifficulty(option.id)}
+              >
+                <span className="start__difficulty-choice-name">{option.label}</span>
+                <span className="start__difficulty-choice-description">{option.description}</span>
               </button>
             ))}
           </div>

@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { Chess } from 'chess.js'
 import { START_FEN } from '../src/game/engine'
 import { AIClient } from '../src/game/ai/aiClient'
-import { moveDuration } from '../src/ui/effects/motion'
+import { moveDuration, TRAVEL_MS } from '../src/ui/effects/motion'
 
 interface Posted {
   type: string
@@ -73,6 +73,13 @@ describe('cliente de la IA sin Web Worker (respaldo en el hilo principal)', () =
 })
 
 describe('duración de animaciones', () => {
+  it('desliza cada pieza en un intervalo de 0,2 a 0,3 segundos', () => {
+    for (const duration of Object.values(TRAVEL_MS)) {
+      expect(duration).toBeGreaterThanOrEqual(200)
+      expect(duration).toBeLessThanOrEqual(300)
+    }
+  })
+
   it('cada captura dura entre medio segundo y un segundo', () => {
     const baseCapture = {
       from: 'e4' as const,

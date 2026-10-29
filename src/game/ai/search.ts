@@ -4,34 +4,17 @@
  * tiempo. Todos los movimientos salen de `chess.js`, por lo que son legales por
  * construcción.
  *
- * Nivel "Prototipo": profundidad 2 + capturas. No se presenta como un motor
- * fuerte: no tiene tablas de aperturas, ni finales, ni evaluación medida con
- * partidas.
+ * "Prototipo" usa profundidad 2 y "Veterano" profundiza hasta 3; ambos perfiles
+ * comparten el mismo motor y evaluación, con presupuesto de tiempo acotado.
+ * Ninguno tiene tablas de aperturas o finales, ni evaluación medida con partidas.
  */
 import { Chess, type Move } from 'chess.js'
 import { evaluatePosition, PIECE_VALUE } from './evaluate'
+import { DIFFICULTIES } from './difficulty'
+import type { DifficultyConfig } from './difficulty'
 
-export type DifficultyId = 'prototipo'
-
-export interface DifficultyConfig {
-  id: DifficultyId
-  label: string
-  description: string
-  maxDepth: number
-  timeBudgetMs: number
-  quiescenceDepth: number
-}
-
-export const DIFFICULTIES: Record<DifficultyId, DifficultyConfig> = {
-  prototipo: {
-    id: 'prototipo',
-    label: 'Prototipo',
-    description: 'Mira dos jugadas, alguna captura más y valora material, amenazas y rey.',
-    maxDepth: 2,
-    timeBudgetMs: 1100,
-    quiescenceDepth: 3,
-  },
-}
+export { DIFFICULTIES } from './difficulty'
+export type { DifficultyConfig, DifficultyId } from './difficulty'
 
 export interface AIMove {
   from: string

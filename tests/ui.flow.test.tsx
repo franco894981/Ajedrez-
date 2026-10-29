@@ -84,6 +84,32 @@ describe('flujo de la interfaz', () => {
     expect(screen.getByText(activeScenario.name)).toBeTruthy()
   })
 
+  it('recuerda escenario y dificultad elegidos y muestra Veterano durante la partida', async () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Seleccionar escenario Refugio Militar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Elegir dificultad Veterano' }))
+
+    expect(screen.getByRole('button', { name: 'Seleccionar escenario Refugio Militar' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: 'Elegir dificultad Veterano' }).getAttribute('aria-pressed')).toBe('true')
+    expect(window.localStorage.getItem('tlc.settings.v1')).toContain('veterano')
+    expect(window.localStorage.getItem('tlc.settings.v1')).toContain('military-shelter')
+
+    cleanup()
+    render(<App />)
+    expect(screen.getByRole('button', { name: 'Seleccionar escenario Refugio Militar' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: 'Elegir dificultad Veterano' }).getAttribute('aria-pressed')).toBe('true')
+
+    fireEvent.click(screen.getByRole('button', { name: /jugar/i }))
+    await screen.findByText('Tu turno')
+    expect(screen.getByText('Veterano')).toBeTruthy()
+    expect(screen.getByText(/Refugio Militar/)).toBeTruthy()
+
+    clickSquare('e2')
+    clickSquare('e4')
+    await waitFor(() => expect(screen.getByText('Tu turno')).toBeTruthy(), { timeout: 10000 })
+    expect(screen.getByText('Veterano')).toBeTruthy()
+  })
+
   it('empieza la partida con 32 piezas y el turno del jugador', async () => {
     await startGame()
     expect(document.querySelectorAll('.board__pieces .piece')).toHaveLength(32)
@@ -114,6 +140,8 @@ describe('flujo de la interfaz', () => {
 
     // Durante la animación no se aceptan nuevas acciones.
     expect(screen.getByText('Movimiento en curso')).toBeTruthy()
+    expect((document.querySelector('.board') as HTMLElement).style.getPropertyValue('--travel')).toBe('220ms')
+    expect(pieceOn('e4')?.classList.contains('piece--moving')).toBe(true)
     const target = document.querySelector('[data-square="e4"]') as HTMLButtonElement
     expect(target.disabled).toBe(true)
 

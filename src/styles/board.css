@@ -203,6 +203,9 @@
   width: 12.5%;
   height: 12.5%;
   transition: transform var(--travel, 0ms) cubic-bezier(0.22, 0.68, 0.24, 1);
+}
+
+.piece--moving {
   will-change: transform;
 }
 

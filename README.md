@@ -5,7 +5,7 @@ guerra apocalíptica y tres escenarios visuales. **Las armas son decorativas**: 
 movimientos, capturas ni ninguna regla del ajedrez.
 
 - Jugador con **blancas**, IA con **negras**.
-- Una dificultad: **Prototipo**.
+- Dos dificultades locales: **Prototipo** y **Veterano**.
 - Tres escenarios visuales seleccionables: **Ciudad de Ceniza**, **Refugio Militar** y
   **Desierto Postapocalíptico**.
 - Interfaz completa en español (el título se mantiene en inglés).
@@ -40,15 +40,14 @@ cualquier host, de modo que el proxy de la vista previa puede mostrarlo.
 
 ## Cómo se juega
 
-1. Pantalla inicial → **Jugar**.
+1. En la pantalla inicial elige escenario y dificultad (**Prototipo** o **Veterano**); después pulsa **Jugar**.
 2. Toca una pieza propia: aparecen sus movimientos legales.
    - Punto claro = movimiento normal.
    - Marco de brasa = captura legal.
-3. Toca la casilla destino. Si es una captura, se reproduce el efecto del arma
-   de tu pieza y al terminar la pieza atacante ocupa la casilla.
-4. La IA responde automáticamente. Mientras se resuelve una jugada (animación o
-   pensamiento de la IA) el tablero está bloqueado para impedir jugadas
-   duplicadas.
+3. Toca la casilla destino. La pieza se desliza en unos 220 ms; si captura, el
+   efecto del arma empieza al aterrizar.
+4. La IA responde automáticamente en la dificultad elegida. Mientras se resuelve
+   una jugada (deslizamiento, efecto o búsqueda) el tablero queda bloqueado.
 5. Al promocionar, aparece un selector con reina, torre, alfil y caballo.
 6. **Nueva partida** pide confirmación si hay una partida en curso.
 
@@ -103,11 +102,14 @@ juego las separa en `GameSession.getStatus()`:
 
 ## Inteligencia artificial
 
-Archivos: `src/game/ai/search.ts`, `evaluate.ts`, `ai.worker.ts`, `aiClient.ts`.
+Archivos: `src/game/ai/difficulty.ts`, `search.ts`, `evaluate.ts`, `ai.worker.ts` y `aiClient.ts`.
 
-- **Negamax con poda alfa-beta**, profundidad 2 + búsqueda de capturas
-  (quiescence) y ordenación de jugadas, con presupuesto de tiempo de ~1,1 s y
-  profundización iterativa.
+- **Negamax con poda alfa-beta**, búsqueda de capturas (quiescence), ordenación
+  de jugadas y profundización iterativa.
+- **Prototipo**: profundidad 2, quiescence 3 y presupuesto de ~1,1 s.
+- **Veterano**: hasta profundidad 3, quiescence 4 y presupuesto de ~1,8 s; su
+  búsqueda ampliada detecta más amenazas y evita dejar la dama expuesta en las
+  respuestas tácticas inmediatas.
 - **Evaluación**: material, tablas posicionales por pieza, seguridad del rey
   (escudo de peones, rey alejado de su fila), pareja de alfiles, peones doblados
   y aislados, y amenazas inmediatas (piezas valiosas atacadas por cada bando).
@@ -120,10 +122,9 @@ Archivos: `src/game/ai/search.ts`, `evaluate.ts`, `ai.worker.ts`, `aiClient.ts`.
 - Hay un desempate aleatorio (semilla) entre jugadas de valor equivalente para
   que las partidas no sean idénticas.
 
-**Nivel real:** es un rival sencillo, de aficionado. No tiene aperturas ni
-finales, no ve más de dos jugadas de profundidad y no se ha medido con partidas
-contra otros motores ni con rating Elo. La etiqueta «Prototipo» es deliberada:
-**no** se afirma un nivel de ajedrez concreto.
+**Nivel real:** ambos perfiles son rivales locales de aficionado, sin aperturas
+ni finales y sin medición Elo. Veterano profundiza una semijugada más que
+Prototipo y reduce algunos errores tácticos, pero no garantiza un nivel concreto.
 
 ---
 
@@ -155,12 +156,11 @@ Efectos de captura (`src/ui/effects/`), breves y distintos:
 | Dama | Rayo violeta/cian y desintegración visual de la víctima |
 | Rey | Fogonazo de revólver, trazadora y humo breve |
 
-Los destellos son de escala local (aprox. una casilla, con una expansión breve)
-y se dibujan sobre las piezas para que se vean, sin cubrir casillas vecinas. Las
-capturas se resuelven en aproximadamente 0,58–0,78 s. Las explosiones son solo
-visuales: nunca eliminan piezas adicionales. No hay
-disparos independientes del movimiento, daño de área, fuego amigo, munición ni
-vida.
+Los destellos son de escala local y no cubren casillas vecinas. El atacante se
+desliza durante 220 ms; el arma y el impacto esperan a su llegada. La secuencia
+visual completa queda por debajo de un segundo. Las explosiones son solo
+visuales: nunca eliminan piezas adicionales. No hay daño de área, fuego amigo,
+munición ni vida.
 
 **Animaciones reducidas** (`Ajustes` o `prefers-reduced-motion`): traslados
 instantáneos, efectos de ~140 ms y fondo sin brasas ni pulsos.
@@ -168,10 +168,10 @@ instantáneos, efectos de ~140 ms y fondo sin brasas ni pulsos.
 ### Cómo se garantiza que la animación no desincroniza
 
 - `GameSession` aplica la jugada y la registra **antes** de cualquier efecto.
-- El tablero se dibuja siempre desde `snapshot.pieces` (estado lógico). La
-  animación es un `transform` sobre piezas ya colocadas en su casilla final.
-- La pieza capturada se muestra desvaneciéndose como "fantasma" temporal que no
-  existe en el estado.
+- El tablero se dibuja siempre desde `snapshot.pieces` (estado lógico). El
+  `transform` suaviza el paso del origen al destino durante 220 ms.
+- Los efectos de ataque esperan al aterrizaje; la víctima queda visible hasta
+  el impacto y luego se desvanece como "fantasma" temporal fuera del estado.
 - El bloqueo (`locked`) impide toques y también rechaza movimientos directos
   del motor o de la IA hasta terminar; el temporizador se cancela al reiniciar.
 
@@ -186,8 +186,8 @@ instantáneos, efectos de ~140 ms y fondo sin brasas ni pulsos.
 - La música se inicia **solo al pulsar Jugar (si está habilitada) o activar el
   control Música**. Otros gestos desbloquean Web Audio para los efectos, pero no
   arrancan la banda sonora.
-- Controles independientes de música y efectos en la pantalla inicial y en
-  Ajustes; se guardan en `localStorage`. Al sonar música, los efectos bajan
+- Música, efectos, animaciones reducidas, escenario y dificultad se guardan en
+  `localStorage`. Al sonar música, los efectos bajan
   moderadamente de volumen; al apagarla, la música se desvanece y se detiene.
 - Se pausa al ocultar la pestaña.
 - La composición y los efectos se generan en tiempo real: no se descargan pistas
@@ -210,6 +210,7 @@ src/
     types.ts                Tipos compartidos
     engine.ts               GameSession: reglas, turnos, estado, fin de partida
     ai/
+      difficulty.ts         Perfiles Prototipo y Veterano
       evaluate.ts           Evaluación estática
       search.ts             Negamax alfa-beta, niveles, aleatoriedad
       ai.worker.ts          Worker de cálculo
@@ -229,11 +230,11 @@ src/
   styles/                   tokens, base, fondo, tablero, piezas, efectos, UI
 tests/
   engine.test.ts            Reglas y estados especiales (28 pruebas)
-  ai.test.ts                Legalidad y comportamiento de la IA (10 pruebas)
-  ui.flow.test.tsx          Flujo de interfaz y textos de resultado (12 pruebas)
+  ai.test.ts                Legalidad y comportamiento de la IA (11 pruebas)
+  ui.flow.test.tsx          Flujo de interfaz y textos de resultado (13 pruebas)
   audio.test.ts             Activación explícita, mezcla y atenuación (2 pruebas)
   components.test.tsx       Tablero, escenarios, promoción y efectos (20 pruebas)
-  worker.test.ts            Contrato del worker, respaldo y duraciones (5 pruebas)
+  worker.test.ts            Contrato del worker, respaldo y duraciones (6 pruebas)
 scripts/
   render-pieces.tsx         Utilidad: genera docs/pieces-preview.png
 docs/
@@ -304,15 +305,16 @@ No se ha generado ningún APK, ni anuncios, ni pagos, ni publicación.
 
 1. **No he podido ver la interfaz en un navegador real ni en un teléfono.**
    Este entorno no tiene navegador gráfico. Sí he ejecutado compilación de
-   tipos, empaquetado, las 77 pruebas automatizadas (incluidas pruebas de flujo
+   tipos, empaquetado, las 80 pruebas automatizadas (incluidas pruebas de flujo
    con jsdom) y he servido la app con Vite. El aspecto visual, el tacto y el
    audio deben validarse en tu teléfono.
 2. El audio no se ha escuchado en dispositivo: el volumen y el equilibrio
    música/efectos pueden necesitar ajuste.
-3. IA de aficionado: no ve más de dos jugadas, no tiene aperturas ni finales y
-   puede repetir jugadas en posiciones cerradas. La IA no reclama tablas.
-4. Tres escenarios decorativos; la única dificultad disponible sigue siendo
-   «Prototipo».
+3. IA de aficionado: Veterano alcanza hasta tres semijugadas (plies), sin
+   aperturas ni finales; puede repetir jugadas en posiciones cerradas y no
+   reclama tablas. No se ha medido con rating Elo.
+4. Los tres escenarios siguen siendo decorativos; escenario y dificultad se
+   recuerdan localmente al recargar.
 5. Las animaciones son 2D estilizadas con SVG/CSS; no hay animaciones de
    personajes ni arte rasterizado.
 6. Sin guardado de partida: recargar la página vuelve al inicio.
@@ -329,6 +331,6 @@ No se ha generado ningún APK, ni anuncios, ni pagos, ni publicación.
 1. Validar en dispositivo y ajustar tamaños, contraste y audio.
 2. Ajustar contraste y detalle de los escenarios con pruebas en dispositivos.
 3. Animaciones de captura más ricas (partículas, escombros) sin tocar la lógica.
-4. Segundo nivel de IA (profundidad 3 + aperturas ligeras) con medición real.
+4. Medir el nivel Veterano en dispositivos y ajustar su presupuesto si hace falta.
 5. Historial de jugadas y deshacer.
 6. Empaquetado con Capacitor y firma del APK cuando se decida.

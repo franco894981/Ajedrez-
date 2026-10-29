@@ -8,7 +8,7 @@
 import { useMemo, type CSSProperties } from 'react'
 import type { GameSnapshot, PieceType, Square } from '../../game/types'
 import type { ActiveMove } from '../useGame'
-import { travelDuration } from '../effects/motion'
+import { impactOffset, travelDuration } from '../effects/motion'
 import { PieceArt } from './PieceArt'
 import { MoveEffects } from '../effects/MoveEffects'
 
@@ -68,6 +68,9 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
   const energyCapture = activeMove?.motion.pieceType === 'q' && Boolean(capturedInfo)
 
   const travel = activeMove ? travelDuration(activeMove.applied.piece, reducedMotion) : 0
+  const capturedPieceDelay = activeMove
+    ? travel + impactOffset(activeMove.applied.piece, reducedMotion)
+    : 0
 
   return (
     <div
@@ -169,10 +172,20 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
           const { file, rank } = squareIndex(piece.square)
           const isHopping =
             activeMove !== null && activeMove.motion.pieceType === 'n' && movingPieceId === piece.id
+          const castlingRookSquare = activeMove?.applied.castling
+            ? `${activeMove.applied.castling === 'k' ? 'f' : 'd'}${activeMove.applied.from[1]}`
+            : null
+          const isMovingPiece =
+            movingPieceId === piece.id ||
+            (activeMove?.applied.castling !== null &&
+              activeMove?.applied.castling !== undefined &&
+              piece.type === 'r' &&
+              piece.color === activeMove.applied.color &&
+              piece.square === castlingRookSquare)
           return (
             <div
               key={piece.id}
-              className={`piece piece--${piece.color} piece--${piece.type}`}
+              className={`piece piece--${piece.color} piece--${piece.type} ${isMovingPiece ? 'piece--moving' : ''}`}
               style={{ transform: `translate(${file * 100}%, ${rank * 100}%)` }}
               data-piece-id={piece.id}
               data-square={piece.square}
@@ -192,12 +205,12 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
               transform: `translate(${squareIndex(capturedInfo.square).file * 100}%, ${
                 squareIndex(capturedInfo.square).rank * 100
               }%)`,
-              animationDelay: energyCapture && !reducedMotion ? '250ms' : undefined,
+              animationDelay: `${capturedPieceDelay}ms`,
             }}
           >
             <div
               className="piece__inner"
-              style={{ animationDelay: energyCapture && !reducedMotion ? '250ms' : undefined }}
+              style={{ animationDelay: `${capturedPieceDelay}ms` }}
             >
               <PieceArt
                 type={capturedInfo.type}

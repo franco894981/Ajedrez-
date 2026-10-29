@@ -21,13 +21,36 @@ describe('IA: legalidad y comportamiento', () => {
     expect(result.nodes).toBeGreaterThan(0)
   })
 
-  it('nunca propone movimientos ilegales en una partida completa', () => {
+  it('Veterano profundiza hasta tres plies y evita dejar la reina a tiro', () => {
+    expect(DIFFICULTIES.veterano.maxDepth).toBe(3)
+    const fen = '4k3/8/8/8/4q3/8/8/4R1K1 b - - 0 1'
+    const result = findBestMove(fen, DIFFICULTIES.veterano, { seed: 13 })
+    expect(result.move).not.toBeNull()
+    expect(result.depth).toBe(3)
+    expect(isLegal(fen, result.move!.from, result.move!.to)).toBe(true)
+
+    const chess = new Chess(fen)
+    chess.move({ from: result.move!.from, to: result.move!.to, promotion: result.move!.promotion })
+    const blackQueen = chess
+      .board()
+      .flat()
+      .find((piece) => piece?.color === 'b' && piece.type === 'q')
+    expect(blackQueen).toBeTruthy()
+    const canWhiteCaptureQueen = chess.moves({ verbose: true }).some(
+      (move) => move.to === blackQueen!.square && move.captured === 'q',
+    )
+    expect(canWhiteCaptureQueen).toBe(false)
+  })
+
+  it('nunca propone movimientos ilegales en una partida de prueba', () => {
     const game = new GameSession(START_FEN, { humanColor: 'w' })
+    const quickConfig = { ...DIFFICULTIES.prototipo, maxDepth: 1, quiescenceDepth: 0 }
     let plies = 0
     while (!game.getStatus().isOver && plies < 30) {
       const fen = game.getFen()
       const side = game.getTurn()
-      const result = findBestMove(fen, DIFFICULTIES.prototipo, { seed: plies + 1 })
+      // Esta prueba verifica legalidad, no fuerza: usa una búsqueda mínima y recorre 30 posiciones.
+      const result = findBestMove(fen, quickConfig, { seed: plies + 1 })
       expect(result.move).not.toBeNull()
       const outcome =
         side === 'w'

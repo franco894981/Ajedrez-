@@ -277,7 +277,9 @@ export function useGame(settings: Settings) {
     const isCurrent = () => aliveRef.current && gameId === gameIdRef.current && requestId === aiRequestRef.current
 
     client
-      ?.think(fen, 'prototipo', { seed: (gameId * 7919 + snapshot.status.moveNumber * 131) >>> 0 })
+      ?.think(fen, settingsRef.current.difficulty, {
+        seed: (gameId * 7919 + snapshot.status.moveNumber * 131) >>> 0,
+      })
       .then((result) => {
         if (!isCurrent()) return
         let outcome: MoveOutcome | null = null
