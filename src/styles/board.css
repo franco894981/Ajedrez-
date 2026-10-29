@@ -37,6 +37,34 @@
   grid-template-rows: repeat(8, 1fr);
 }
 
+.board__ash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.board__ash-particle {
+  position: absolute;
+  top: -3%;
+  display: block;
+  border-radius: 50%;
+  background: rgba(213, 204, 188, 0.72);
+  box-shadow: 0 0 3px rgba(221, 199, 164, 0.3);
+  animation: boardAshFall 16s linear infinite;
+}
+
+.board__ash-particle--ember {
+  background: rgba(255, 163, 82, 0.72);
+  box-shadow: 0 0 5px rgba(255, 121, 48, 0.42);
+}
+
+.board--reduced .board__ash-particle {
+  display: none;
+}
+
 .square {
   position: relative;
   border: 0;
@@ -283,6 +311,23 @@
   }
   100% {
     transform: scale(0.14) rotate(32deg);
+  }
+}
+
+@keyframes boardAshFall {
+  0% {
+    transform: translate3d(0, -2vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--ash-opacity, 0.2);
+  }
+  88% {
+    opacity: var(--ash-opacity, 0.2);
+  }
+  100% {
+    transform: translate3d(var(--drift, 8px), 110vh, 0) rotate(150deg);
+    opacity: 0;
   }
 }
 

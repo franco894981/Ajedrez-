@@ -14,6 +14,7 @@ import { MoveEffects } from '../effects/MoveEffects'
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const
 const RANKS = [8, 7, 6, 5, 4, 3, 2, 1] as const
+const BOARD_ASH = Array.from({ length: 10 }, (_, index) => index)
 
 const PIECE_LABEL: Record<PieceType, string> = {
   p: 'peón',
@@ -141,6 +142,26 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
             )
           }),
         )}
+      </div>
+
+      <div className="board__ash" aria-hidden="true">
+        {BOARD_ASH.map((index) => (
+          <span
+            key={index}
+            className={`board__ash-particle ${index % 4 === 0 ? 'board__ash-particle--ember' : ''}`}
+            style={
+              {
+                left: `${(index * 37 + 11) % 100}%`,
+                width: index % 5 === 0 ? '2px' : '1px',
+                height: index % 3 === 0 ? '2px' : '1px',
+                animationDelay: `${-(((index * 1.73) + 0.35) % 19)}s`,
+                animationDuration: `${14 + (index % 4) * 2}s`,
+                '--drift': `${((index % 5) - 2) * 5}px`,
+                '--ash-opacity': `${0.18 + (index % 3) * 0.04}`,
+              } as CSSProperties
+            }
+          />
+        ))}
       </div>
 
       <div className="board__pieces" aria-hidden="true">

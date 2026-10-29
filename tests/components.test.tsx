@@ -4,16 +4,21 @@
  * tablero, diálogo de promoción y panel de resultado.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { Backdrop } from '../src/ui/components/Backdrop'
 import { Board } from '../src/ui/components/Board'
+import { GameScreen } from '../src/ui/components/GameScreen'
 import { PromotionDialog } from '../src/ui/components/PromotionDialog'
 import { ResultPanel } from '../src/ui/components/ResultPanel'
 import { GameSession, START_FEN } from '../src/game/engine'
 import type { Square } from '../src/game/types'
-import type { ActiveMove } from '../src/ui/useGame'
+import type { ActiveMove, useGame } from '../src/ui/useGame'
 import { MoveEffects } from '../src/ui/effects/MoveEffects'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
 function sessionWithSelection(fen: string, square: string) {
   const session = new GameSession(fen, { humanColor: 'w' })
@@ -52,6 +57,41 @@ function visualCapture(pieceType: 'k' | 'n'): ActiveMove {
   }
 }
 
+function gameView(session: GameSession, activeMove: ActiveMove | null = null, busy = false) {
+  const snapshot = session.getSnapshot()
+  return {
+    screen: 'partida',
+    snapshot,
+    activeMove,
+    busy,
+    aiThinking: false,
+    settingsOpen: false,
+    confirm: null,
+    notice: null,
+    humanInCheck: snapshot.status.inCheck && snapshot.status.turn === 'w' && !snapshot.status.isOver,
+    aiInCheck: snapshot.status.inCheck && snapshot.status.turn === 'b' && !snapshot.status.isOver,
+    setSettingsOpen: () => {},
+    startNewGame: () => {},
+    requestRestart: () => {},
+    requestMenu: () => {},
+    confirmAction: () => {},
+    cancelConfirm: () => {},
+    handleSquareTap: () => {},
+    choosePromotion: () => {},
+    cancelPromotion: () => {},
+    claimDraw: () => false,
+    dismissNotice: () => {},
+  } as unknown as ReturnType<typeof useGame>
+}
+
+describe('fondo Ciudad de Ceniza', () => {
+  it('renderiza ceniza descendente ligera y resplandor en los bordes', () => {
+    const { container } = render(<Backdrop />)
+    expect(container.querySelectorAll('.backdrop__ash-particle')).toHaveLength(22)
+    expect(container.querySelector('.backdrop__edge-glow')).toBeTruthy()
+  })
+})
+
 describe('tablero', () => {
   it('marca movimientos normales y capturas de forma distinta', () => {
     const session = sessionWithSelection('4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1', 'e4')
@@ -69,6 +109,7 @@ describe('tablero', () => {
 
     expect(document.querySelectorAll('.square--light')).toHaveLength(32)
     expect(document.querySelectorAll('.square--dark')).toHaveLength(32)
+    expect(document.querySelectorAll('.board__ash-particle')).toHaveLength(10)
     expect(document.querySelectorAll('.square--move').length).toBeGreaterThan(0)
     expect(document.querySelectorAll('.square--capture').length).toBe(1)
     expect(document.querySelector('.square--selected')?.getAttribute('data-square')).toBe('e4')
@@ -142,6 +183,56 @@ describe('tablero', () => {
   })
 })
 
+describe('impactos de pantalla y jaque', () => {
+  it('sacude el juego al capturar, salvo con animaciones reducidas', () => {
+    const session = new GameSession('8/4k3/8/3r4/3Q4/8/8/4K3 w - - 0 1', {
+      humanColor: 'w',
+    })
+    const outcome = session.applyMove({ from: 'd4', to: 'd5' }, 'w')
+    expect(outcome.ok).toBe(true)
+    const snapshot = session.getSnapshot()
+    const activeMove: ActiveMove = {
+      key: 8,
+      motion: snapshot.motion!,
+      applied: outcome.move!,
+    }
+    const game = gameView(session, activeMove, true)
+    const props = {
+      game,
+      onToggleMusic: () => {},
+      onToggleSfx: () => {},
+      onToggleReducedMotion: () => {},
+    }
+    const { container, rerender } = render(
+      <GameScreen {...props} settings={{ music: false, sfx: false, reducedMotion: false }} />,
+    )
+
+    expect(container.querySelector('.game')?.classList.contains('game--capture-hit')).toBe(true)
+    rerender(<GameScreen {...props} settings={{ music: false, sfx: false, reducedMotion: true }} />)
+    expect(container.querySelector('.game')?.classList.contains('game--capture-hit')).toBe(false)
+  })
+
+  it('muestra ¡JAQUE! y lo retira a los dos segundos', () => {
+    vi.useFakeTimers()
+    const session = new GameSession('4k3/8/8/8/8/8/8/4K2R w - - 0 1', { humanColor: 'w' })
+    expect(session.applyMove({ from: 'h1', to: 'h8' }, 'w').ok).toBe(true)
+    const props = {
+      game: gameView(session),
+      settings: { music: false, sfx: false, reducedMotion: false },
+      onToggleMusic: () => {},
+      onToggleSfx: () => {},
+      onToggleReducedMotion: () => {},
+    }
+    const { queryByText } = render(<GameScreen {...props} />)
+
+    expect(screen.getByText('¡JAQUE!')).toBeTruthy()
+    act(() => vi.advanceTimersByTime(1999))
+    expect(screen.getByText('¡JAQUE!')).toBeTruthy()
+    act(() => vi.advanceTimersByTime(1))
+    expect(queryByText('¡JAQUE!')).toBeNull()
+  })
+})
+
 describe('efectos de captura', () => {
   it('dispara el fogonazo de escopeta al aterrizar el caballo', () => {
     const { container } = render(<MoveEffects activeMove={visualCapture('n')} reducedMotion={false} />)
@@ -185,8 +276,12 @@ describe('efectos de captura', () => {
     }
     const { container } = render(<MoveEffects activeMove={activeMove} reducedMotion={false} />)
     const slash = container.querySelector('.fx__slash') as HTMLElement
+    const flash = container.querySelector('.fx__capture-flash') as HTMLElement
     expect(slash.style.left).toBe('43.75%')
     expect(slash.style.top).toBe('43.75%')
+    expect(flash.style.left).toBe('43.75%')
+    expect(flash.style.top).toBe('43.75%')
+    expect(flash.style.animationDelay).toBe('240ms')
   })
 })
 

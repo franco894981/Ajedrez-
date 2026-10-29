@@ -64,9 +64,20 @@ p {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  .backdrop__ash-particle,
+  .board__ash-particle {
+    display: none !important;
+  }
 }
 
 [data-reduced-motion='true'] .backdrop__ember,
+[data-reduced-motion='true'] .backdrop__ash-particle,
+[data-reduced-motion='true'] .backdrop__edge-glow,
 [data-reduced-motion='true'] .backdrop__smoke ellipse {
   animation: none !important;
+}
+
+[data-reduced-motion='true'] .backdrop__ash-particle {
+  display: none !important;
 }

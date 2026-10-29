@@ -2,7 +2,10 @@
  * Fondo del escenario «Ciudad de Ceniza».
  * Es decorativo y de bajo contraste: el tablero siempre tiene prioridad visual.
  */
+import type { CSSProperties } from 'react'
+
 const EMBERS = Array.from({ length: 14 }, (_, index) => index)
+const FALLING_ASH = Array.from({ length: 22 }, (_, index) => index)
 
 export function Backdrop() {
   return (
@@ -70,6 +73,26 @@ export function Backdrop() {
         ))}
       </div>
       <div className="backdrop__vignette" />
+      <div className="backdrop__edge-glow" />
+      <div className="backdrop__ash">
+        {FALLING_ASH.map((index) => (
+          <span
+            key={index}
+            className="backdrop__ash-particle"
+            style={
+              {
+                left: `${(index * 37 + 9) % 100}%`,
+                width: index % 6 === 0 ? '2px' : '1px',
+                height: index % 4 === 0 ? '2px' : '1px',
+                animationDelay: `${-(((index * 1.9) + 0.4) % 26)}s`,
+                animationDuration: `${16 + (index % 5) * 2}s`,
+                '--drift': `${((index % 7) - 3) * 5}px`,
+                '--ash-opacity': `${0.16 + (index % 4) * 0.04}`,
+              } as CSSProperties
+            }
+          />
+        ))}
+      </div>
     </div>
   )
 }
