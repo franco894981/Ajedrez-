@@ -27,6 +27,11 @@ export interface ActiveMove {
 const HUMAN_COLOR: Color = 'w'
 const AI_COLOR: Color = 'b'
 
+/** La IA completa cualquier promoción automática con una dama. */
+export function resolveAIPromotion(promotion?: PieceType): PieceType | undefined {
+  return promotion ? 'q' : undefined
+}
+
 export function useGame(settings: Settings) {
   const sessionRef = useRef<GameSession | null>(null)
   if (!sessionRef.current) {
@@ -262,7 +267,11 @@ export function useGame(settings: Settings) {
       const legal = session.getAllLegalMoves()
       if (legal.length === 0) return null
       const pick = legal[Math.floor(Math.random() * legal.length)]
-      return session.playAIMove({ from: pick.from, to: pick.to, promotion: pick.promotion })
+      return session.playAIMove({
+        from: pick.from,
+        to: pick.to,
+        promotion: resolveAIPromotion(pick.promotion),
+      })
     }
 
     const isCurrent = () => aliveRef.current && gameId === gameIdRef.current && requestId === aiRequestRef.current
@@ -276,7 +285,7 @@ export function useGame(settings: Settings) {
           outcome = session.playAIMove({
             from: result.move.from as Square,
             to: result.move.to as Square,
-            promotion: result.move.promotion as PieceType | undefined,
+            promotion: resolveAIPromotion(result.move.promotion as PieceType | undefined),
           })
         }
         if (!outcome?.ok) outcome = fallback()

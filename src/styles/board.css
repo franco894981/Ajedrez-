@@ -229,11 +229,11 @@
 
 /* La reina convierte la desaparición de la víctima en una desintegración breve. */
 .piece--ghost-energy {
-  animation: energyGhostOut 620ms ease-out forwards;
+  animation: energyGhostOut 430ms ease-out forwards;
 }
 
 .piece--ghost-energy .piece__inner {
-  animation: energyGhostKick 620ms ease-out forwards;
+  animation: energyGhostKick 430ms ease-out forwards;
 }
 
 .board--reduced .piece {
