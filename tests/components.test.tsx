@@ -10,6 +10,8 @@ import { PromotionDialog } from '../src/ui/components/PromotionDialog'
 import { ResultPanel } from '../src/ui/components/ResultPanel'
 import { GameSession, START_FEN } from '../src/game/engine'
 import type { Square } from '../src/game/types'
+import type { ActiveMove } from '../src/ui/useGame'
+import { MoveEffects } from '../src/ui/effects/MoveEffects'
 
 afterEach(cleanup)
 
@@ -17,6 +19,37 @@ function sessionWithSelection(fen: string, square: string) {
   const session = new GameSession(fen, { humanColor: 'w' })
   session.tapSquare(square as Square)
   return session
+}
+
+function visualCapture(pieceType: 'k' | 'n'): ActiveMove {
+  const from: Square = pieceType === 'n' ? 'g1' : 'e1'
+  const to: Square = 'e2'
+  return {
+    key: 1,
+    motion: {
+      pieceId: 1,
+      from,
+      to,
+      pieceType,
+      color: 'w',
+      captured: true,
+      capturedPieceType: 'p',
+      castling: null,
+      enPassant: false,
+    },
+    applied: {
+      from,
+      to,
+      color: 'w',
+      piece: pieceType,
+      captured: { type: 'p', square: to, id: 2 },
+      castling: null,
+      enPassant: false,
+      san: pieceType === 'n' ? 'Nxe2' : 'Kxe2',
+      check: false,
+      checkmate: false,
+    },
+  }
 }
 
 describe('tablero', () => {
@@ -42,6 +75,35 @@ describe('tablero', () => {
 
     fireEvent.click(document.querySelector('[data-square="d5"]') as HTMLElement)
     expect(onTap).toHaveBeenCalledWith('d5')
+  })
+
+  it('muestra el rayo energético de la reina y disuelve la víctima capturada', () => {
+    const session = new GameSession('8/4k3/8/3r4/3Q4/8/8/4K3 w - - 0 1', {
+      humanColor: 'w',
+    })
+    const outcome = session.applyMove({ from: 'd4', to: 'd5' }, 'w')
+    expect(outcome.ok).toBe(true)
+    const snapshot = session.getSnapshot()
+    const activeMove: ActiveMove = {
+      key: 1,
+      motion: snapshot.motion!,
+      applied: outcome.move!,
+    }
+
+    render(
+      <Board
+        snapshot={snapshot}
+        activeMove={activeMove}
+        busy
+        reducedMotion={false}
+        humanColor="w"
+        onSquareTap={() => {}}
+      />,
+    )
+
+    expect(document.querySelector('.piece--ghost-energy')).toBeTruthy()
+    expect(document.querySelector('.fx--q .fx__beam--energy')).toBeTruthy()
+    expect(document.querySelector('.fx--q .fx__impact--energy')).toBeTruthy()
   })
 
   it('deshabilita el tablero mientras se resuelve un movimiento', () => {
@@ -77,6 +139,54 @@ describe('tablero', () => {
     expect(document.querySelectorAll('.square--check')).toHaveLength(1)
     expect(document.querySelector('.square--check')?.getAttribute('data-square')).toBe('e8')
     expect(document.querySelectorAll('.square--last').length).toBe(2)
+  })
+})
+
+describe('efectos de captura', () => {
+  it('dispara el fogonazo de escopeta al aterrizar el caballo', () => {
+    const { container } = render(<MoveEffects activeMove={visualCapture('n')} reducedMotion={false} />)
+    const flash = container.querySelector('.fx__flash--shotgun') as HTMLElement
+    expect(flash).toBeTruthy()
+    expect(flash.style.animationDelay).toBe('360ms')
+  })
+
+  it('añade una pequeña estela de humo al revólver del rey', () => {
+    const { container } = render(<MoveEffects activeMove={visualCapture('k')} reducedMotion={false} />)
+    expect(container.querySelector('.fx__flash')).toBeTruthy()
+    expect(container.querySelector('.fx__smoke--revolver')).toBeTruthy()
+  })
+
+  it('sitúa el corte del peón en la víctima al capturar al paso', () => {
+    const activeMove: ActiveMove = {
+      key: 2,
+      motion: {
+        pieceId: 1,
+        from: 'e5',
+        to: 'd6',
+        pieceType: 'p',
+        color: 'w',
+        captured: true,
+        capturedPieceType: 'p',
+        castling: null,
+        enPassant: true,
+      },
+      applied: {
+        from: 'e5',
+        to: 'd6',
+        color: 'w',
+        piece: 'p',
+        captured: { type: 'p', square: 'd5', id: 2 },
+        castling: null,
+        enPassant: true,
+        san: 'exd6',
+        check: false,
+        checkmate: false,
+      },
+    }
+    const { container } = render(<MoveEffects activeMove={activeMove} reducedMotion={false} />)
+    const slash = container.querySelector('.fx__slash') as HTMLElement
+    expect(slash.style.left).toBe('43.75%')
+    expect(slash.style.top).toBe('43.75%')
   })
 })
 

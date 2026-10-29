@@ -5,8 +5,8 @@
 .fx {
   position: absolute;
   inset: 0;
-  /* Debajo de las piezas (z-index: 2): los destellos no las tapan. */
-  z-index: 1;
+  /* Sobre las piezas, pero con efectos acotados a la casilla de impacto. */
+  z-index: 3;
   pointer-events: none;
   overflow: visible;
 }
@@ -21,6 +21,13 @@
   --fx-hot: #ffb08a;
   --fx-warm: #f2502a;
   --fx-cool: #ffc7a0;
+}
+
+/* La reina tiene un espectro energético propio, distinto del fuego y el acero. */
+.fx--q {
+  --fx-hot: #f0e2ff;
+  --fx-warm: #9a63ff;
+  --fx-cool: #73e4ff;
 }
 
 .fx > span {
@@ -50,7 +57,7 @@
 .fx__slash {
   width: 14%;
   aspect-ratio: 1;
-  animation: slash 420ms ease-out forwards;
+  animation: slash 520ms ease-out forwards;
 }
 
 .fx__slash svg {
@@ -80,6 +87,12 @@
   stroke-dasharray: 110;
   stroke-dashoffset: 110;
   animation: draw 260ms 60ms ease-out forwards;
+}
+
+.fx--p .fx__slash-a,
+.fx--p .fx__slash-b {
+  stroke: #fffef8;
+  filter: drop-shadow(0 0 7px #fff) drop-shadow(0 0 13px #ffbf78);
 }
 
 /* Torre: proyectil y explosión localizada */
@@ -118,6 +131,11 @@
   animation: smoke 760ms ease-out forwards;
 }
 
+.fx__smoke--revolver {
+  width: 7%;
+  animation-duration: 520ms;
+}
+
 /* Alfil: línea de precisión */
 .fx__beam {
   height: 2px;
@@ -128,13 +146,19 @@
   animation: beam 300ms ease-out forwards;
 }
 
+.fx__beam--precision {
+  background: linear-gradient(90deg, rgba(232, 255, 250, 0.25), #f5fffc 35%, #63f2ce 85%, transparent 100%);
+  box-shadow: 0 0 8px #65f2ce;
+  animation-duration: 520ms;
+}
+
 .fx__beam--energy {
   height: 6px;
   margin-top: -3px;
   border-radius: 6px;
-  background: linear-gradient(90deg, rgba(255, 230, 190, 0.35), #fff6df 28%, var(--fx-warm) 70%, transparent 100%);
-  box-shadow: 0 0 16px 4px var(--fx-warm);
-  animation: beam 420ms ease-out forwards;
+  background: linear-gradient(90deg, rgba(209, 181, 255, 0.25), #fff 28%, var(--fx-hot) 55%, var(--fx-warm) 76%, var(--fx-cool) 90%, transparent 100%);
+  box-shadow: 0 0 16px 4px var(--fx-warm), 0 0 24px 5px var(--fx-cool);
+  animation: beam 520ms ease-out forwards;
 }
 
 .fx__impact {
@@ -143,12 +167,12 @@
   border-radius: 50%;
   background: radial-gradient(circle, var(--fx-hot) 0 14%, var(--fx-warm) 30%, transparent 66%);
   mix-blend-mode: screen;
-  animation: impact 340ms ease-out forwards;
+  animation: impact 500ms ease-out forwards;
 }
 
 .fx__impact--energy {
   width: 11%;
-  animation-duration: 460ms;
+  animation-duration: 520ms;
 }
 
 .fx__ring {
@@ -160,6 +184,14 @@
   animation: ringOut 460ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
 }
 
+.fx__ring--sword {
+  animation-duration: 520ms;
+}
+
+.fx__ring--shotgun {
+  animation-duration: 180ms;
+}
+
 .fx__ring--wide {
   border-color: rgba(255, 176, 120, 0.8);
   animation-duration: 620ms;
@@ -167,7 +199,7 @@
 
 .fx__ring--energy {
   border-color: var(--fx-hot);
-  animation-duration: 520ms;
+  animation-duration: 620ms;
 }
 
 /* Caballo: fogonazo de escopeta */
@@ -182,7 +214,7 @@
 
 .fx__flash--shotgun {
   width: 10%;
-  animation-duration: 320ms;
+  animation-duration: 180ms;
 }
 
 /* Rey: fogonazo y trazadora */

@@ -11,6 +11,7 @@
 import type { CSSProperties } from 'react'
 import type { ActiveMove } from '../useGame'
 import type { Square } from '../../game/types'
+import { travelDuration } from './motion'
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
@@ -31,9 +32,12 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
   const { motion, applied } = activeMove
   const from = center(motion.from)
   const to = center(motion.to)
+  // En captura al paso la víctima no está en la casilla de llegada del peón.
+  const impact = center(applied.captured?.square ?? motion.to)
   const color = motion.color
   const type = motion.pieceType
   const captured = Boolean(applied.captured)
+  const landingDelay = travelDuration(applied.piece, reducedMotion)
 
   const dx = to.x - from.x
   const dy = to.y - from.y
@@ -59,13 +63,13 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
 
       {captured && type === 'p' && (
         <>
-          <span className="fx__slash" style={{ left: pct(to.x), top: pct(to.y) }}>
+          <span className="fx__slash" style={{ left: pct(impact.x), top: pct(impact.y) }}>
             <svg viewBox="0 0 100 100" aria-hidden="true">
               <path d="M12 82 C34 66 54 44 88 18" className="fx__slash-a" />
               <path d="M20 90 C46 70 64 50 92 34" className="fx__slash-b" />
             </svg>
           </span>
-          <span className="fx__ring" style={{ left: pct(to.x), top: pct(to.y) }} />
+          <span className="fx__ring fx__ring--sword" style={{ left: pct(impact.x), top: pct(impact.y) }} />
         </>
       )}
 
@@ -91,22 +95,36 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
       {captured && type === 'b' && (
         <>
           <span className="fx__beam fx__beam--precision" style={beamStyle} />
-          <span className="fx__impact" style={{ left: pct(to.x), top: pct(to.y) }} />
+          <span className="fx__impact" style={{ left: pct(impact.x), top: pct(impact.y) }} />
         </>
       )}
 
       {captured && type === 'n' && (
         <>
-          <span className="fx__flash fx__flash--shotgun" style={{ left: pct(to.x), top: pct(to.y) }} />
-          <span className="fx__ring" style={{ left: pct(to.x), top: pct(to.y) }} />
+          <span
+            className="fx__flash fx__flash--shotgun"
+            style={{
+              left: pct(impact.x),
+              top: pct(impact.y),
+              animationDelay: `${landingDelay}ms`,
+            }}
+          />
+          <span
+            className="fx__ring fx__ring--shotgun"
+            style={{
+              left: pct(impact.x),
+              top: pct(impact.y),
+              animationDelay: `${landingDelay}ms`,
+            }}
+          />
         </>
       )}
 
       {captured && type === 'q' && (
         <>
           <span className="fx__beam fx__beam--energy" style={beamStyle} />
-          <span className="fx__impact fx__impact--energy" style={{ left: pct(to.x), top: pct(to.y) }} />
-          <span className="fx__ring fx__ring--energy" style={{ left: pct(to.x), top: pct(to.y) }} />
+          <span className="fx__impact fx__impact--energy" style={{ left: pct(impact.x), top: pct(impact.y) }} />
+          <span className="fx__ring fx__ring--energy" style={{ left: pct(impact.x), top: pct(impact.y) }} />
         </>
       )}
 
@@ -124,7 +142,8 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
               } as CSSProperties
             }
           />
-          <span className="fx__impact" style={{ left: pct(to.x), top: pct(to.y) }} />
+          <span className="fx__impact" style={{ left: pct(impact.x), top: pct(impact.y) }} />
+          <span className="fx__smoke fx__smoke--revolver" style={{ left: pct(from.x), top: pct(from.y) }} />
         </>
       )}
     </div>

@@ -73,6 +73,27 @@ describe('cliente de la IA sin Web Worker (respaldo en el hilo principal)', () =
 })
 
 describe('duración de animaciones', () => {
+  it('cada captura dura entre medio segundo y un segundo', () => {
+    const baseCapture = {
+      from: 'e4' as const,
+      to: 'd5' as const,
+      color: 'w' as const,
+      piece: 'p' as const,
+      captured: { type: 'p' as const, square: 'd5' as const, id: 1 },
+      castling: null,
+      enPassant: false,
+      san: 'exd5',
+      check: false,
+      checkmate: false,
+    }
+
+    for (const piece of ['p', 'n', 'b', 'r', 'q', 'k'] as const) {
+      const duration = moveDuration({ ...baseCapture, piece }, false)
+      expect(duration).toBeGreaterThanOrEqual(500)
+      expect(duration).toBeLessThanOrEqual(1000)
+    }
+  })
+
   it('con animaciones reducidas es más corta y siempre hay espera mínima', () => {
     const pawnCapture = {
       from: 'e4' as const,

@@ -64,6 +64,7 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
 
   const capturedInfo = activeMove?.applied.captured ?? null
   const movingPieceId = activeMove?.motion.pieceId ?? null
+  const energyCapture = activeMove?.motion.pieceType === 'q' && Boolean(capturedInfo)
 
   const travel = activeMove ? travelDuration(activeMove.applied.piece, reducedMotion) : 0
 
@@ -165,7 +166,7 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
         {capturedInfo && activeMove && (
           <div
             key={`ghost-${activeMove.key}`}
-            className="piece piece--ghost"
+            className={`piece piece--ghost ${energyCapture ? 'piece--ghost-energy' : ''}`}
             style={{
               transform: `translate(${squareIndex(capturedInfo.square).file * 100}%, ${
                 squareIndex(capturedInfo.square).rank * 100

@@ -1,12 +1,10 @@
 /**
  * Audio original del prototipo, generado en tiempo real con Web Audio.
  *
- * - No usa canciones ni samples de terceros: todos los sonidos y la música se
- *   sintetizan aquí, así que la licencia es la del propio proyecto.
- * - El contexto de audio solo se crea tras una interacción del usuario
- *   (botón "Jugar" o primer toque), como exigen los navegadores móviles.
- * - Estructura preparada para sustituir la síntesis por archivos propios:
- *   basta con asignar buffers en `loadSamples()` y mantener la misma API.
+ * - La música y los efectos se sintetizan en este archivo; no se descargan
+ *   pistas ni muestras externas.
+ * - El contexto de audio solo se crea tras un gesto del usuario. La música,
+ *   además, solo empieza al pulsar "Jugar" o activar el control Música.
  */
 export type SfxKind =
   | 'ui'
@@ -23,6 +21,12 @@ export type SfxKind =
   | 'win'
   | 'lose'
   | 'draw'
+
+const MASTER_LEVEL = 0.68
+const MUSIC_BUS_LEVEL = 0.32
+const SFX_LEVEL = 0.52
+const SFX_DUCKED_LEVEL = 0.4
+const MUSIC_BEAT_SECONDS = 1.25
 
 export class AudioEngine {
   private ctx: AudioContext | null = null
@@ -45,8 +49,8 @@ export class AudioEngine {
   /** Debe llamarse desde un gesto del usuario. */
   unlock(): void {
     if (this.ctx) {
-      if (this.ctx.state === 'suspended') void this.ctx.resume()
       this.unlocked = true
+      if (this.ctx.state === 'suspended') this.resume()
       return
     }
     const Ctor: typeof AudioContext | undefined =
@@ -56,15 +60,17 @@ export class AudioEngine {
     const ctx = new Ctor()
     this.ctx = ctx
     this.master = ctx.createGain()
-    this.master.gain.value = 0.6
+    this.master.gain.value = MASTER_LEVEL
     this.master.connect(ctx.destination)
 
+    // El bus de música siempre nace en silencio: desbloquear el audio no inicia
+    // la banda sonora. Solo Jugar o activar el interruptor la pone en marcha.
     this.musicBus = ctx.createGain()
-    this.musicBus.gain.value = this.musicEnabled ? 0.22 : 0
+    this.musicBus.gain.value = 0
     this.musicBus.connect(this.master)
 
     this.sfxBus = ctx.createGain()
-    this.sfxBus.gain.value = this.sfxEnabled ? 0.55 : 0
+    this.sfxBus.gain.value = this.sfxEnabled ? SFX_LEVEL : 0
     this.sfxBus.connect(this.master)
 
     const length = Math.floor(ctx.sampleRate * 1.2)
@@ -79,8 +85,7 @@ export class AudioEngine {
     }
     this.noiseBuffer = buffer
     this.unlocked = true
-    if (ctx.state === 'suspended') void ctx.resume()
-    if (this.musicEnabled) this.startMusic()
+    if (ctx.state === 'suspended') this.resume()
   }
 
   setMusicEnabled(enabled: boolean): void {
@@ -88,25 +93,36 @@ export class AudioEngine {
     if (!this.ctx || !this.musicBus) return
     const now = this.ctx.currentTime
     this.musicBus.gain.cancelScheduledValues(now)
-    this.musicBus.gain.setTargetAtTime(enabled ? 0.22 : 0, now, 0.25)
-    if (enabled && !this.musicTimer) this.startMusic()
-    if (!enabled) this.stopMusicNodes()
+    this.musicBus.gain.setTargetAtTime(enabled ? MUSIC_BUS_LEVEL : 0, now, enabled ? 0.45 : 0.18)
+    if (enabled) this.startMusic()
+    else this.stopMusicNodes()
+    this.updateSfxBus()
   }
 
   setSfxEnabled(enabled: boolean): void {
     this.sfxEnabled = enabled
-    if (!this.ctx || !this.sfxBus) return
-    const now = this.ctx.currentTime
-    this.sfxBus.gain.cancelScheduledValues(now)
-    this.sfxBus.gain.setTargetAtTime(enabled ? 0.55 : 0, now, 0.05)
+    this.updateSfxBus(0.08)
   }
 
   suspend(): void {
-    if (this.ctx?.state === 'running') void this.ctx.suspend()
+    const ctx = this.ctx
+    if (ctx?.state !== 'running') return
+    void ctx.suspend()
+    if (this.musicTimer !== null) {
+      window.clearInterval(this.musicTimer)
+      this.musicTimer = null
+    }
   }
 
   resume(): void {
-    if (this.ctx?.state === 'suspended') void this.ctx.resume()
+    const ctx = this.ctx
+    if (ctx?.state !== 'suspended') return
+    void ctx
+      .resume()
+      .then(() => this.startMusicScheduler())
+      .catch(() => {
+        // Algunos navegadores no permiten reanudar hasta un nuevo gesto.
+      })
   }
 
   // -------------------------------------------------------------------
@@ -186,90 +202,127 @@ export class AudioEngine {
 
   startMusic(): void {
     const ctx = this.ctx
-    if (!ctx || !this.musicBus || this.musicNodes) return
     const bus = this.musicBus
+    if (!ctx || !bus || !this.musicEnabled || this.musicNodes || !this.noiseBuffer) return
 
-    const filter = ctx.createBiquadFilter()
-    filter.type = 'lowpass'
-    filter.frequency.value = 360
-    filter.Q.value = 1.2
+    const now = ctx.currentTime
+    const droneFilter = ctx.createBiquadFilter()
+    droneFilter.type = 'lowpass'
+    droneFilter.frequency.value = 220
+    droneFilter.Q.value = 0.7
 
     const droneGain = ctx.createGain()
-    droneGain.gain.value = 0.0
-    droneGain.gain.setTargetAtTime(0.55, ctx.currentTime, 2)
+    droneGain.gain.setValueAtTime(0.0001, now)
+    droneGain.gain.setTargetAtTime(0.55, now, 1.1)
 
-    const oscA = ctx.createOscillator()
-    oscA.type = 'sawtooth'
-    oscA.frequency.value = 73.42 // D2
-    const oscB = ctx.createOscillator()
-    oscB.type = 'sine'
-    oscB.frequency.value = 110 // A2
-    const oscC = ctx.createOscillator()
-    oscC.type = 'triangle'
-    oscC.frequency.value = 146.83 // D3
-    oscC.detune.value = -7
+    // Subgrave D1 y dos capas ásperas, filtradas para no castigar el altavoz.
+    const droneA = ctx.createOscillator()
+    droneA.type = 'sine'
+    droneA.frequency.value = 36.71 // D1
+    const droneB = ctx.createOscillator()
+    droneB.type = 'triangle'
+    droneB.frequency.value = 55 // A1
+    const droneC = ctx.createOscillator()
+    droneC.type = 'sawtooth'
+    droneC.frequency.value = 73.42 // D2
+    droneC.detune.value = -5
+    const tension = ctx.createOscillator()
+    tension.type = 'sine'
+    tension.frequency.value = 103.83 // G#2: tritono que mantiene la tensión
 
-    const gainA = ctx.createGain()
-    gainA.gain.value = 0.35
-    const gainB = ctx.createGain()
-    gainB.gain.value = 0.22
-    const gainC = ctx.createGain()
-    gainC.gain.value = 0.1
+    const droneGainA = ctx.createGain()
+    droneGainA.gain.value = 0.42
+    const droneGainB = ctx.createGain()
+    droneGainB.gain.value = 0.14
+    const droneGainC = ctx.createGain()
+    droneGainC.gain.value = 0.075
+    const tensionGain = ctx.createGain()
+    tensionGain.gain.value = 0.028
 
-    oscA.connect(gainA).connect(filter)
-    oscB.connect(gainB).connect(filter)
-    oscC.connect(gainC).connect(filter)
-    filter.connect(droneGain).connect(bus)
+    droneA.connect(droneGainA).connect(droneFilter)
+    droneB.connect(droneGainB).connect(droneFilter)
+    droneC.connect(droneGainC).connect(droneFilter)
+    tension.connect(tensionGain).connect(droneFilter)
+    droneFilter.connect(droneGain).connect(bus)
 
-    // LFO muy lento sobre el filtro para que el drone respire.
-    const lfo = ctx.createOscillator()
-    lfo.frequency.value = 0.045
-    const lfoGain = ctx.createGain()
-    lfoGain.gain.value = 130
-    lfo.connect(lfoGain).connect(filter.frequency)
+    // Movimiento muy lento del filtro y del tono agudo: ambiente vivo sin
+    // oscilaciones rápidas ni carga gráfica.
+    const filterLfo = ctx.createOscillator()
+    filterLfo.frequency.value = 0.055
+    const filterLfoGain = ctx.createGain()
+    filterLfoGain.gain.value = 68
+    filterLfo.connect(filterLfoGain).connect(droneFilter.frequency)
 
-    // Viento de fondo.
+    const tensionLfo = ctx.createOscillator()
+    tensionLfo.frequency.value = 0.11
+    const tensionLfoGain = ctx.createGain()
+    tensionLfoGain.gain.value = 0.012
+    tensionLfo.connect(tensionLfoGain).connect(tensionGain.gain)
+
+    // Ruido marrón filtrado: viento distante, no una muestra descargada.
     const wind = ctx.createBufferSource()
     wind.buffer = this.noiseBuffer
     wind.loop = true
     const windFilter = ctx.createBiquadFilter()
     windFilter.type = 'bandpass'
-    windFilter.frequency.value = 520
-    windFilter.Q.value = 0.6
+    windFilter.frequency.value = 390
+    windFilter.Q.value = 0.55
     const windGain = ctx.createGain()
-    windGain.gain.value = 0.05
+    windGain.gain.setValueAtTime(0.0001, now)
+    windGain.gain.setTargetAtTime(0.07, now, 1.4)
     wind.connect(windFilter).connect(windGain).connect(bus)
 
-    oscA.start()
-    oscB.start()
-    oscC.start()
-    lfo.start()
-    wind.start()
+    const sources: AudioScheduledSourceNode[] = [droneA, droneB, droneC, tension, filterLfo, tensionLfo, wind]
+    const nodes: AudioNode[] = [
+      droneFilter,
+      droneGain,
+      droneGainA,
+      droneGainB,
+      droneGainC,
+      tensionGain,
+      filterLfoGain,
+      tensionLfoGain,
+      windFilter,
+      windGain,
+    ]
+    for (const source of sources) source.start(now)
 
     this.musicNodes = {
       stop: () => {
-        const now = ctx.currentTime
-        droneGain.gain.setTargetAtTime(0, now, 0.3)
-        windGain.gain.setTargetAtTime(0, now, 0.3)
-        setTimeout(() => {
-          try {
-            oscA.stop()
-            oscB.stop()
-            oscC.stop()
-            lfo.stop()
-            wind.stop()
-          } catch {
-            /* ya detenidos */
+        const stopAt = ctx.currentTime
+        droneGain.gain.setTargetAtTime(0.0001, stopAt, 0.22)
+        windGain.gain.setTargetAtTime(0.0001, stopAt, 0.22)
+        tensionGain.gain.setTargetAtTime(0.0001, stopAt, 0.18)
+        filterLfoGain.gain.setTargetAtTime(0, stopAt, 0.05)
+        tensionLfoGain.gain.setTargetAtTime(0, stopAt, 0.05)
+        window.setTimeout(() => {
+          for (const source of sources) {
+            try {
+              source.stop()
+            } catch {
+              /* ya detenido */
+            }
           }
-          droneGain.disconnect()
-          windGain.disconnect()
-        }, 900)
+          for (const node of nodes) {
+            try {
+              node.disconnect()
+            } catch {
+              /* ya desconectado */
+            }
+          }
+        }, 850)
       },
     }
 
-    this.nextBeat = ctx.currentTime + 0.5
     this.beatIndex = 0
-    this.musicTimer = window.setInterval(() => this.scheduleMusic(), 240)
+    this.startMusicScheduler()
+    this.updateSfxBus()
+  }
+
+  private startMusicScheduler(): void {
+    if (!this.ctx || !this.musicNodes || !this.musicEnabled || this.musicTimer !== null) return
+    this.nextBeat = this.ctx.currentTime + 0.3
+    this.musicTimer = window.setInterval(() => this.scheduleMusic(), 150)
   }
 
   private stopMusicNodes(): void {
@@ -279,59 +332,150 @@ export class AudioEngine {
     }
     this.musicNodes?.stop()
     this.musicNodes = null
+    this.updateSfxBus()
+  }
+
+  private updateSfxBus(timeConstant = 0.12): void {
+    const ctx = this.ctx
+    const bus = this.sfxBus
+    if (!ctx || !bus) return
+    const musicIsPlaying = this.musicEnabled && this.musicNodes !== null
+    const level = !this.sfxEnabled ? 0 : musicIsPlaying ? SFX_DUCKED_LEVEL : SFX_LEVEL
+    const now = ctx.currentTime
+    bus.gain.cancelScheduledValues(now)
+    bus.gain.setTargetAtTime(level, now, timeConstant)
   }
 
   private scheduleMusic(): void {
     const ctx = this.ctx
-    const bus = this.musicBus
-    if (!ctx || !bus) return
-    const horizon = ctx.currentTime + 0.8
-    while (this.nextBeat < horizon) {
+    if (!ctx || !this.musicBus || !this.musicEnabled || ctx.state !== 'running') return
+    const horizon = ctx.currentTime + 0.5
+    while (this.nextBeat <= horizon) {
       const t = this.nextBeat
-      const beat = this.beatIndex
-      // Pulso grave cada dos tiempos, campana lejana cada ocho.
-      if (beat % 2 === 0) this.musicThump(t)
-      if (beat % 8 === 4) this.musicBell(t, 587.33) // D5
-      if (beat % 8 === 6) this.musicBell(t, 466.16) // Bb4
-      this.nextBeat += 1.8
-      this.beatIndex = (beat + 1) % 64
+      const beat = this.beatIndex % 8
+      if (beat % 2 === 0) {
+        this.musicThump(t, beat === 0 || beat === 4 ? 0.56 : 0.4)
+      } else {
+        this.musicMetalHit(t, beat === 1 || beat === 5 ? 0.48 : 0.36)
+      }
+      if (beat === 3) this.musicBell(t + 0.16, 293.66, 0.6) // D4
+      if (beat === 7) this.musicBell(t + 0.16, 233.08, 0.62) // Bb3
+      this.nextBeat += MUSIC_BEAT_SECONDS
+      this.beatIndex = (beat + 1) % 8
     }
   }
 
-  private musicThump(t: number): void {
+  private musicThump(t: number, strength: number): void {
     const ctx = this.ctx
     const bus = this.musicBus
-    if (!ctx || !bus) return
+    if (!ctx || !bus || !this.noiseBuffer) return
+
     const osc = ctx.createOscillator()
     osc.type = 'sine'
-    osc.frequency.setValueAtTime(58, t)
-    osc.frequency.exponentialRampToValueAtTime(34, t + 0.5)
-    const gain = ctx.createGain()
-    gain.gain.setValueAtTime(0.0001, t)
-    gain.gain.exponentialRampToValueAtTime(0.5, t + 0.03)
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.9)
-    osc.connect(gain).connect(bus)
+    osc.frequency.setValueAtTime(62, t)
+    osc.frequency.exponentialRampToValueAtTime(35, t + 0.48)
+    const body = ctx.createGain()
+    body.gain.setValueAtTime(0.0001, t)
+    body.gain.exponentialRampToValueAtTime(0.62 * strength, t + 0.025)
+    body.gain.exponentialRampToValueAtTime(0.0001, t + 0.68)
+    osc.connect(body).connect(bus)
+    osc.onended = () => {
+      osc.disconnect()
+      body.disconnect()
+    }
     osc.start(t)
-    osc.stop(t + 1)
+    osc.stop(t + 0.72)
+
+    const grit = ctx.createBufferSource()
+    grit.buffer = this.noiseBuffer
+    const gritFilter = ctx.createBiquadFilter()
+    gritFilter.type = 'lowpass'
+    gritFilter.frequency.setValueAtTime(210, t)
+    gritFilter.frequency.exponentialRampToValueAtTime(95, t + 0.24)
+    const gritGain = ctx.createGain()
+    gritGain.gain.setValueAtTime(0.0001, t)
+    gritGain.gain.exponentialRampToValueAtTime(0.19 * strength, t + 0.012)
+    gritGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.27)
+    grit.connect(gritFilter).connect(gritGain).connect(bus)
+    grit.onended = () => {
+      grit.disconnect()
+      gritFilter.disconnect()
+      gritGain.disconnect()
+    }
+    grit.start(t, Math.random() * 0.7, 0.3)
   }
 
-  private musicBell(t: number, freq: number): void {
+  private musicMetalHit(t: number, strength: number): void {
     const ctx = this.ctx
     const bus = this.musicBus
     if (!ctx || !bus) return
-    const osc = ctx.createOscillator()
-    osc.type = 'triangle'
-    osc.frequency.value = freq
-    const gain = ctx.createGain()
-    gain.gain.setValueAtTime(0.0001, t)
-    gain.gain.exponentialRampToValueAtTime(0.09, t + 0.08)
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 3.4)
+
     const filter = ctx.createBiquadFilter()
     filter.type = 'lowpass'
-    filter.frequency.value = 1800
-    osc.connect(filter).connect(gain).connect(bus)
-    osc.start(t)
-    osc.stop(t + 3.6)
+    filter.frequency.value = 1500
+    filter.Q.value = 0.65
+    filter.connect(bus)
+    const partials = [
+      { frequency: 137, level: 0.34, decay: 0.48 },
+      { frequency: 204, level: 0.22, decay: 0.62 },
+      { frequency: 319, level: 0.13, decay: 0.78 },
+      { frequency: 487, level: 0.07, decay: 0.9 },
+    ]
+    let remaining = partials.length
+    for (const [index, partial] of partials.entries()) {
+      const osc = ctx.createOscillator()
+      osc.type = index < 2 ? 'triangle' : 'sine'
+      osc.frequency.value = partial.frequency
+      if (index > 0) osc.detune.value = index % 2 === 0 ? -7 : 5
+      const gain = ctx.createGain()
+      gain.gain.setValueAtTime(0.0001, t)
+      gain.gain.exponentialRampToValueAtTime(partial.level * strength, t + 0.009)
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + partial.decay)
+      osc.connect(gain).connect(filter)
+      osc.onended = () => {
+        osc.disconnect()
+        gain.disconnect()
+        remaining -= 1
+        if (remaining === 0) filter.disconnect()
+      }
+      osc.start(t)
+      osc.stop(t + partial.decay + 0.04)
+    }
+  }
+
+  private musicBell(t: number, freq: number, strength: number): void {
+    const ctx = this.ctx
+    const bus = this.musicBus
+    if (!ctx || !bus) return
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.value = 1500
+    filter.Q.value = 0.55
+    filter.connect(bus)
+    const partials = [
+      { ratio: 1, level: 0.15 },
+      { ratio: 2.01, level: 0.055 },
+      { ratio: 2.76, level: 0.022 },
+    ]
+    let remaining = partials.length
+    for (const [index, partial] of partials.entries()) {
+      const osc = ctx.createOscillator()
+      osc.type = index === 0 ? 'triangle' : 'sine'
+      osc.frequency.value = freq * partial.ratio
+      const gain = ctx.createGain()
+      gain.gain.setValueAtTime(0.0001, t)
+      gain.gain.exponentialRampToValueAtTime(partial.level * strength, t + 0.045)
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.6)
+      osc.connect(gain).connect(filter)
+      osc.onended = () => {
+        osc.disconnect()
+        gain.disconnect()
+        remaining -= 1
+        if (remaining === 0) filter.disconnect()
+      }
+      osc.start(t)
+      osc.stop(t + 2.72)
+    }
   }
 
   // -------------------------------------------------------------------
