@@ -217,6 +217,24 @@
   animation-duration: 180ms;
 }
 
+/* Destello común para cualquier captura, centrado en la casilla de la víctima. */
+.fx__capture-flash {
+  width: 15%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 245, 0.98) 0 8%,
+    rgba(255, 238, 197, 0.92) 18%,
+    rgba(255, 150, 67, 0.56) 42%,
+    rgba(238, 73, 31, 0.18) 62%,
+    transparent 76%
+  );
+  box-shadow: 0 0 14px rgba(255, 136, 63, 0.42);
+  mix-blend-mode: screen;
+  animation: captureImpactFlash 240ms ease-out forwards;
+}
+
 /* Rey: fogonazo y trazadora */
 .fx__tracer {
   height: 2px;
@@ -237,6 +255,7 @@
 .fx--reduced .fx__impact,
 .fx--reduced .fx__ring,
 .fx--reduced .fx__flash,
+.fx--reduced .fx__capture-flash,
 .fx--reduced .fx__tracer {
   animation-duration: 140ms;
 }
@@ -365,6 +384,20 @@
   }
   100% {
     transform: translate(-50%, -50%) scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes captureImpactFlash {
+  0% {
+    transform: translate(-50%, -50%) scale(0.25);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.2);
     opacity: 0;
   }
 }

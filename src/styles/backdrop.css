@@ -100,6 +100,38 @@
   background: radial-gradient(120% 90% at 50% 45%, transparent 45%, rgba(4, 3, 3, 0.72) 100%);
 }
 
+.backdrop__edge-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.72;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(ellipse 19% 82% at 0% 52%, rgba(255, 78, 30, 0.2), rgba(214, 66, 26, 0.07) 42%, transparent 82%),
+    radial-gradient(ellipse 19% 82% at 100% 48%, rgba(255, 78, 30, 0.18), rgba(214, 66, 26, 0.06) 42%, transparent 82%),
+    radial-gradient(ellipse 78% 19% at 50% 100%, rgba(255, 91, 35, 0.13), transparent 88%);
+  animation: edgeFire 7s ease-in-out infinite alternate;
+}
+
+.backdrop__ash {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.backdrop__ash-particle {
+  position: absolute;
+  top: -2vh;
+  display: block;
+  border-radius: 50%;
+  background: rgba(210, 201, 184, 0.7);
+  box-shadow: 0 0 4px rgba(217, 193, 157, 0.34);
+  animation-name: fallingAsh;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
 @keyframes rise {
   0% {
     transform: translate3d(0, 0, 0) scale(1);
@@ -111,6 +143,32 @@
   100% {
     transform: translate3d(24px, -52vh, 0) scale(0.4);
     opacity: 0;
+  }
+}
+
+@keyframes fallingAsh {
+  0% {
+    transform: translate3d(0, -2vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--ash-opacity, 0.2);
+  }
+  88% {
+    opacity: var(--ash-opacity, 0.2);
+  }
+  100% {
+    transform: translate3d(var(--drift, 12px), 108vh, 0) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes edgeFire {
+  from {
+    opacity: 0.42;
+  }
+  to {
+    opacity: 0.82;
   }
 }
 

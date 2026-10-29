@@ -61,6 +61,17 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
       <span className="fx__dust" style={{ left: pct(to.x), top: pct(to.y) }} />
       <span className="fx__step" style={{ left: pct(to.x), top: pct(to.y) }} />
 
+      {captured && (
+        <span
+          className="fx__capture-flash"
+          style={{
+            left: pct(impact.x),
+            top: pct(impact.y),
+            animationDelay: `${landingDelay}ms`,
+          }}
+        />
+      )}
+
       {captured && type === 'p' && (
         <>
           <span className="fx__slash" style={{ left: pct(impact.x), top: pct(impact.y) }}>
