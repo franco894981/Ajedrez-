@@ -6,9 +6,24 @@ navegador gráfico ni audio.
 
 ## Antes de empezar
 
-1. `npm install` y `npm run dev` en la computadora (o usa la vista previa).
+1. `npm ci` y `npm run dev -- --host 0.0.0.0` en la computadora (o usa la vista previa).
 2. Abre la URL `Network` que imprime Vite desde el teléfono, en la misma Wi-Fi.
 3. Orientación recomendada: vertical.
+
+## Escenarios
+
+- [ ] El selector ofrece **Ciudad de Ceniza**, **Refugio Militar** y
+      **Desierto Postapocalíptico**; las tarjetas se pueden tocar.
+- [ ] Al seleccionar cada tarjeta cambian el nombre, la descripción y el botón
+      **Jugar en…**; en móvil se puede deslizar la fila para ver las tres.
+- [ ] Al iniciar, el fondo y los tonos del tablero corresponden a la selección;
+      el nombre también aparece durante la partida.
+- [ ] Ciudad: ruinas y brasas. Refugio: paneles metálicos y luces rojas tenues.
+      Desierto: tonos arena/ocre y polvo en el horizonte.
+- [ ] Las casillas y piezas siguen siendo claramente legibles; el selector no
+      produce scroll horizontal en toda la página.
+- [ ] Volver al menú y elegir otro escenario actualiza el fondo de la siguiente
+      partida sin perder la selección antes de pulsar **Jugar**.
 
 ## Interfaz
 

@@ -74,7 +74,9 @@ p {
 [data-reduced-motion='true'] .backdrop__ember,
 [data-reduced-motion='true'] .backdrop__ash-particle,
 [data-reduced-motion='true'] .backdrop__edge-glow,
-[data-reduced-motion='true'] .backdrop__smoke ellipse {
+[data-reduced-motion='true'] .backdrop__smoke ellipse,
+[data-reduced-motion='true'] .backdrop__shelter-panels::before,
+[data-reduced-motion='true'] .backdrop__desert-storm {
   animation: none !important;
 }
 

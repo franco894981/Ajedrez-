@@ -1,21 +1,23 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Backdrop } from './ui/components/Backdrop'
 import { GameScreen } from './ui/components/GameScreen'
 import { StartScreen } from './ui/components/StartScreen'
 import { useSettings } from './ui/settings'
 import { useGame } from './ui/useGame'
 import { audio } from './audio/AudioEngine'
-import { DEFAULT_SCENARIO } from './theme/scenarios'
+import { DEFAULT_SCENARIO, getScenario } from './theme/scenarios'
 import { applyTheme } from './theme/applyTheme'
 
 export default function App() {
   const { settings, toggleMusic, toggleSfx, toggleReducedMotion } = useSettings()
+  const [scenarioId, setScenarioId] = useState(DEFAULT_SCENARIO.id)
+  const scenario = getScenario(scenarioId)
   const game = useGame(settings)
 
-  // Escenario único de esta etapa: su paleta se vuelca en variables CSS.
+  // El escenario solo configura la presentación; no interviene en la partida.
   useEffect(() => {
-    applyTheme(DEFAULT_SCENARIO)
-  }, [])
+    applyTheme(scenario)
+  }, [scenario])
 
   // Desbloquea Web Audio para los efectos tras un gesto, sin iniciar música.
   // La banda sonora se activa únicamente desde Jugar o el control Música.
@@ -59,11 +61,13 @@ export default function App() {
   }
 
   return (
-    <div className="app" data-screen={game.screen}>
-      <Backdrop />
+    <div className="app" data-screen={game.screen} data-scenario={scenario.id}>
+      <Backdrop scenario={scenario} />
       {game.screen === 'inicio' ? (
         <StartScreen
           settings={settings}
+          scenario={scenario}
+          onSelectScenario={setScenarioId}
           onPlay={handlePlay}
           onToggleMusic={handleToggleMusic}
           onToggleSfx={handleToggleSfx}
@@ -73,6 +77,7 @@ export default function App() {
         <GameScreen
           game={game}
           settings={settings}
+          scenario={scenario}
           onToggleMusic={handleToggleMusic}
           onToggleSfx={handleToggleSfx}
           onToggleReducedMotion={toggleReducedMotion}

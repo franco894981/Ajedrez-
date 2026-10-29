@@ -9,6 +9,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { audio } from '../src/audio/AudioEngine'
+import { SCENARIO_LIST } from '../src/theme/scenarios'
 import App from '../src/App'
 
 function clickSquare(square: string) {
@@ -55,6 +56,32 @@ describe('flujo de la interfaz', () => {
     expect(screen.getByText(/the last/i)).toBeTruthy()
     expect(screen.getByText(/checkmate/i)).toBeTruthy()
     expect(screen.getByRole('button', { name: /jugar/i })).toBeTruthy()
+  })
+
+  it('permite cambiar de escenario, aplica su paleta y la usa al jugar', async () => {
+    render(<App />)
+
+    for (const scenario of SCENARIO_LIST) {
+      const choice = screen.getByRole('button', {
+        name: `Seleccionar escenario ${scenario.name}`,
+      })
+      fireEvent.click(choice)
+
+      expect(choice.getAttribute('aria-pressed')).toBe('true')
+      expect(document.querySelector('.backdrop')?.getAttribute('data-scenario')).toBe(scenario.id)
+      expect(document.documentElement.style.getPropertyValue('--sq-light')).toBe(
+        scenario.palette.lightSquare,
+      )
+    }
+
+    const activeScenario = SCENARIO_LIST.at(-1)!
+    fireEvent.click(
+      screen.getByRole('button', { name: `Jugar en ${activeScenario.name}` }),
+    )
+    await screen.findByText('Tu turno')
+
+    expect(document.querySelector('.game')?.getAttribute('data-scenario')).toBe(activeScenario.id)
+    expect(screen.getByText(activeScenario.name)).toBeTruthy()
   })
 
   it('empieza la partida con 32 piezas y el turno del jugador', async () => {
