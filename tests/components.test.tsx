@@ -14,6 +14,7 @@ import { GameSession, START_FEN } from '../src/game/engine'
 import type { Square } from '../src/game/types'
 import type { ActiveMove, useGame } from '../src/ui/useGame'
 import { MoveEffects } from '../src/ui/effects/MoveEffects'
+import { DEFAULT_SCENARIO, SCENARIO_LIST } from '../src/theme/scenarios'
 
 afterEach(() => {
   cleanup()
@@ -84,12 +85,32 @@ function gameView(session: GameSession, activeMove: ActiveMove | null = null, bu
   } as unknown as ReturnType<typeof useGame>
 }
 
-describe('fondo Ciudad de Ceniza', () => {
-  it('renderiza ceniza descendente ligera y resplandor en los bordes', () => {
+describe('fondos de escenario', () => {
+  it('renderiza ceniza descendente ligera y resplandor en Ciudad de Ceniza', () => {
     const { container } = render(<Backdrop />)
     expect(container.querySelectorAll('.backdrop__ash-particle')).toHaveLength(22)
     expect(container.querySelector('.backdrop__edge-glow')).toBeTruthy()
+    expect(container.querySelector('.backdrop__ruins')).toBeTruthy()
   })
+
+  for (const scenario of SCENARIO_LIST) {
+    it(`activa el fondo CSS de ${scenario.name}`, () => {
+      const { container } = render(<Backdrop scenario={scenario} />)
+      const backdrop = container.querySelector('.backdrop')
+
+      expect(backdrop?.getAttribute('data-scenario')).toBe(scenario.id)
+      expect(backdrop?.classList.contains(`backdrop--${scenario.backdrop}`)).toBe(true)
+      expect(container.querySelectorAll('.backdrop__ash-particle')).toHaveLength(22)
+
+      if (scenario.backdrop === 'military-shelter') {
+        expect(container.querySelector('.backdrop__shelter-panels')).toBeTruthy()
+      }
+      if (scenario.backdrop === 'post-apocalyptic-desert') {
+        expect(container.querySelector('.backdrop__desert-dunes')).toBeTruthy()
+        expect(container.querySelector('.backdrop__desert-storm')).toBeTruthy()
+      }
+    })
+  }
 })
 
 describe('tablero', () => {
@@ -199,6 +220,7 @@ describe('impactos de pantalla y jaque', () => {
     const game = gameView(session, activeMove, true)
     const props = {
       game,
+      scenario: DEFAULT_SCENARIO,
       onToggleMusic: () => {},
       onToggleSfx: () => {},
       onToggleReducedMotion: () => {},
@@ -218,6 +240,7 @@ describe('impactos de pantalla y jaque', () => {
     expect(session.applyMove({ from: 'h1', to: 'h8' }, 'w').ok).toBe(true)
     const props = {
       game: gameView(session),
+      scenario: DEFAULT_SCENARIO,
       settings: { music: false, sfx: false, reducedMotion: false },
       onToggleMusic: () => {},
       onToggleSfx: () => {},

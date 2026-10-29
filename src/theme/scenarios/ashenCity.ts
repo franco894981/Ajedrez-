@@ -12,6 +12,7 @@ export const ashenCity: ScenarioTheme = {
   backdrop: 'ashen-city',
   palette: {
     skyTop: '#0b0a09',
+    skyMid: '#17110e',
     skyBottom: '#241b16',
     fog: '#3a2c22',
     lightSquare: '#6b6156',

@@ -1,12 +1,13 @@
 # The Last Checkmate: Ashen Warfare
 
-Prototipo jugable (etapa 1) de un ajedrez clásico contra la computadora con
-presentación de guerra apocalíptica. **Las armas son decorativas**: no cambian
+Prototipo jugable de ajedrez clásico contra la computadora, con presentación de
+guerra apocalíptica y tres escenarios visuales. **Las armas son decorativas**: no cambian
 movimientos, capturas ni ninguna regla del ajedrez.
 
 - Jugador con **blancas**, IA con **negras**.
 - Una dificultad: **Prototipo**.
-- Un escenario: **Ciudad de Ceniza**.
+- Tres escenarios visuales seleccionables: **Ciudad de Ceniza**, **Refugio Militar** y
+  **Desierto Postapocalíptico**.
 - Interfaz completa en español (el título se mantiene en inglés).
 - 100 % local: sin servidor, sin cuentas, sin claves de API y sin conexión
   necesaria después de cargar la página.
@@ -21,16 +22,16 @@ Lista de comprobación para el teléfono: `docs/pruebas-en-telefono.md`.
 Requiere Node 20 o superior.
 
 ```bash
-npm install
-npm run dev        # servidor de desarrollo (http://localhost:5173)
+npm ci
+npm run dev -- --host 0.0.0.0  # desarrollo y acceso desde la red local
 npm run build      # comprobación de tipos + paquete en dist/
 npm run preview    # sirve dist/ para probar el paquete final
 npm test           # pruebas automatizadas
 ```
 
-Para probarlo en el teléfono durante el desarrollo: ejecuta `npm run dev` y abre
-la dirección `Network` que imprime Vite (por ejemplo `http://192.168.1.20:5173`)
-en el navegador del teléfono, con el teléfono en la misma red Wi-Fi.
+Para probarlo en el teléfono durante el desarrollo: ejecuta
+`npm run dev -- --host 0.0.0.0`, conecta teléfono y computadora a la misma Wi-Fi y
+abre en el móvil la dirección `Network` que imprime Vite.
 
 En la vista previa de este entorno, el servidor escucha en `0.0.0.0` y acepta
 cualquier host, de modo que el proxy de la vista previa puede mostrarlo.
@@ -130,11 +131,13 @@ contra otros motores ni con rating Elo. La etiqueta «Prototipo» es deliberada:
 
 - Paleta de ceniza, metal, óxido y brasas; el tablero es el elemento con más
   contraste y el fondo queda atenuado (`src/styles/backdrop.css`).
-- Escenario 1: **Ciudad de Ceniza** — ruinas lejanas, humo, brasas y resplandor
-  bajo. Definido en `src/theme/scenarios/ashenCity.ts`.
-- Los escenarios son solo datos (`ScenarioTheme`): paleta + tipo de fondo. Para
-  añadir otro escenario basta con crear un archivo en `src/theme/scenarios/`,
-  registrarlo en `index.ts` y pasar la variable CSS correspondiente.
+- **Ciudad de Ceniza** — ruinas, humo y brasas; `src/theme/scenarios/ashenCity.ts`.
+- **Refugio Militar** — paneles metálicos y luces de emergencia tenues;
+  `src/theme/scenarios/militaryShelter.ts`.
+- **Desierto Postapocalíptico** — dunas y tormenta de polvo ocre;
+  `src/theme/scenarios/postApocalypticDesert.ts`.
+- Los fondos nuevos se construyen con gradientes CSS y comparten el contrato
+  `ScenarioTheme`; el escenario solo cambia presentación y paleta, nunca reglas.
 - Bandos diferenciados por color **y** por forma: blancas en marfil y acero,
   negras en metal ennegrecido y óxido, con ojos de brasa.
 - Armas por pieza: peón espada oxidada · torre bazuca · alfil rifle de
@@ -219,16 +222,17 @@ src/
     effects/                Movimiento y efectos por arma
   theme/                    ESTILOS POR ESCENARIO
     types.ts                Contrato ScenarioTheme
-    scenarios/              ashenCity.ts (escenario 1)
+    scenarios/              ashenCity.ts, militaryShelter.ts,
+                            postApocalypticDesert.ts
     applyTheme.ts           Paleta → variables CSS
   audio/AudioEngine.ts      AUDIO sintetizado
   styles/                   tokens, base, fondo, tablero, piezas, efectos, UI
 tests/
   engine.test.ts            Reglas y estados especiales (28 pruebas)
   ai.test.ts                Legalidad y comportamiento de la IA (10 pruebas)
-  ui.flow.test.tsx          Flujo de interfaz y textos de resultado (11 pruebas)
+  ui.flow.test.tsx          Flujo de interfaz y textos de resultado (12 pruebas)
   audio.test.ts             Activación explícita, mezcla y atenuación (2 pruebas)
-  components.test.tsx       Tablero, promoción, resultados y efectos (10 pruebas)
+  components.test.tsx       Tablero, escenarios, promoción y efectos (16 pruebas)
   worker.test.ts            Contrato del worker, respaldo y duraciones (5 pruebas)
 scripts/
   render-pieces.tsx         Utilidad: genera docs/pieces-preview.png
@@ -300,14 +304,15 @@ No se ha generado ningún APK, ni anuncios, ni pagos, ni publicación.
 
 1. **No he podido ver la interfaz en un navegador real ni en un teléfono.**
    Este entorno no tiene navegador gráfico. Sí he ejecutado compilación de
-   tipos, empaquetado, las 66 pruebas automatizadas (incluidas pruebas de flujo
+   tipos, empaquetado, las 73 pruebas automatizadas (incluidas pruebas de flujo
    con jsdom) y he servido la app con Vite. El aspecto visual, el tacto y el
    audio deben validarse en tu teléfono.
 2. El audio no se ha escuchado en dispositivo: el volumen y el equilibrio
    música/efectos pueden necesitar ajuste.
 3. IA de aficionado: no ve más de dos jugadas, no tiene aperturas ni finales y
    puede repetir jugadas en posiciones cerradas. La IA no reclama tablas.
-4. Solo un escenario y una dificultad (por diseño en esta etapa).
+4. Tres escenarios decorativos; la única dificultad disponible sigue siendo
+   «Prototipo».
 5. Las animaciones son 2D estilizadas con SVG/CSS; no hay animaciones de
    personajes ni arte rasterizado.
 6. Sin guardado de partida: recargar la página vuelve al inicio.
@@ -322,7 +327,7 @@ No se ha generado ningún APK, ni anuncios, ni pagos, ni publicación.
 ## Próximos pasos sugeridos
 
 1. Validar en dispositivo y ajustar tamaños, contraste y audio.
-2. Escenarios adicionales reutilizando `ScenarioTheme`.
+2. Ajustar contraste y detalle de los escenarios con pruebas en dispositivos.
 3. Animaciones de captura más ricas (partículas, escombros) sin tocar la lógica.
 4. Segundo nivel de IA (profundidad 3 + aperturas ligeras) con medición real.
 5. Historial de jugadas y deshacer.

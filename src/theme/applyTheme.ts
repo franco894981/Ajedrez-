@@ -2,13 +2,13 @@ import type { ScenarioTheme } from './types'
 
 /**
  * Vuelca la paleta del escenario en variables CSS del documento.
- * Así los componentes solo usan var(--...) y se pueden añadir escenarios
- * futuros sin tocar el CSS.
+ * La interfaz y el tablero solo consumen var(--...), sin tocar la lógica.
  */
 export function applyTheme(theme: ScenarioTheme, root: HTMLElement = document.documentElement): void {
   const p = theme.palette
   const vars: Record<string, string> = {
     '--sky-top': p.skyTop,
+    '--sky-mid': p.skyMid,
     '--sky-bottom': p.skyBottom,
     '--fog': p.fog,
     '--sq-light': p.lightSquare,

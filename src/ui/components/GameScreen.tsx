@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { useGame } from '../useGame'
 import type { Settings } from '../settings'
-import { DEFAULT_SCENARIO } from '../../theme/scenarios'
+import type { ScenarioTheme } from '../../theme/types'
 import { Board } from './Board'
 import { Icon } from './Common'
 import { PromotionDialog } from './PromotionDialog'
@@ -14,12 +14,13 @@ type Game = ReturnType<typeof useGame>
 interface Props {
   game: Game
   settings: Settings
+  scenario: ScenarioTheme
   onToggleMusic: () => void
   onToggleSfx: () => void
   onToggleReducedMotion: () => void
 }
 
-export function GameScreen({ game, settings, onToggleMusic, onToggleSfx, onToggleReducedMotion }: Props) {
+export function GameScreen({ game, settings, scenario, onToggleMusic, onToggleSfx, onToggleReducedMotion }: Props) {
   const {
     snapshot,
     activeMove,
@@ -102,7 +103,7 @@ export function GameScreen({ game, settings, onToggleMusic, onToggleSfx, onToggl
 
   return (
     <>
-      <div className={`game ${captureShake ? 'game--capture-hit' : ''}`}>
+      <div className={`game ${captureShake ? 'game--capture-hit' : ''}`} data-scenario={scenario.id}>
         <header className="game__top">
           <button
             type="button"
@@ -177,7 +178,7 @@ export function GameScreen({ game, settings, onToggleMusic, onToggleSfx, onToggl
         <footer className="game__bottom">
           <div className="game__meta">
             <span className="game__scenario">
-              <Icon name="shield" size={14} /> {DEFAULT_SCENARIO.name}
+              <Icon name="shield" size={14} /> {scenario.name}
             </span>
             <span className="game__lastmove">
               {lastSan ? (

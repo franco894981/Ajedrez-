@@ -3,6 +3,7 @@
 
   /* Paleta por defecto (el escenario la sobrescribe vía applyTheme). */
   --sky-top: #0b0a09;
+  --sky-mid: #17110e;
   --sky-bottom: #241b16;
   --fog: #3a2c22;
   --sq-light: #6b6156;

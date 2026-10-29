@@ -1,11 +1,14 @@
 import type { Settings } from '../settings'
-import { DEFAULT_SCENARIO } from '../../theme/scenarios'
+import { SCENARIO_LIST } from '../../theme/scenarios'
+import type { ScenarioTheme } from '../../theme/types'
 import { PieceArt } from './PieceArt'
 import { Icon, Toggle } from './Common'
 import type { PieceType } from '../../game/types'
 
 interface Props {
   settings: Settings
+  scenario: ScenarioTheme
+  onSelectScenario: (id: string) => void
   onPlay: () => void
   onToggleMusic: () => void
   onToggleSfx: () => void
@@ -16,6 +19,8 @@ const PARADE: PieceType[] = ['p', 'r', 'n', 'b', 'q', 'k']
 
 export function StartScreen({
   settings,
+  scenario,
+  onSelectScenario,
   onPlay,
   onToggleMusic,
   onToggleSfx,
@@ -52,8 +57,8 @@ export function StartScreen({
       <section className="start__panel" aria-label="Inicio de partida">
         <div className="start__info">
           <div className="start__info-row">
-            <span className="start__info-label">Escenario</span>
-            <span className="start__info-value">{DEFAULT_SCENARIO.name}</span>
+            <span className="start__info-label">Escenario activo</span>
+            <span className="start__info-value">{scenario.name}</span>
           </div>
           <div className="start__info-row">
             <span className="start__info-label">Dificultad</span>
@@ -61,12 +66,42 @@ export function StartScreen({
               <span className="chip chip--ember">Prototipo</span>
             </span>
           </div>
-          <p className="start__info-tagline">{DEFAULT_SCENARIO.tagline}</p>
+          <p className="start__info-tagline">{scenario.tagline}</p>
         </div>
 
-        <button type="button" className="button button--primary button--large" onClick={onPlay}>
+        <div className="start__scenario-picker">
+          <span className="start__scenario-picker-label">Elige tu campo de batalla</span>
+          <div className="start__scenario-choices" role="group" aria-label="Seleccionar escenario">
+            {SCENARIO_LIST.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className="start__scenario-choice"
+                aria-label={`Seleccionar escenario ${option.name}`}
+                aria-pressed={scenario.id === option.id}
+                onClick={() => onSelectScenario(option.id)}
+              >
+                <span
+                  className={`start__scenario-preview start__scenario-preview--${option.backdrop}`}
+                  aria-hidden="true"
+                />
+                <span className="start__scenario-choice-name">{option.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="button button--primary button--large"
+          onClick={onPlay}
+          aria-label={`Jugar en ${scenario.name}`}
+        >
           <Icon name="play" size={22} />
-          Jugar
+          <span className="start__play-copy">
+            <span>Jugar</span>
+            <span className="start__play-scenario">{scenario.name}</span>
+          </span>
         </button>
         <p className="start__hint">
           Juegas con las <strong>blancas</strong> contra la IA. Toca una pieza y después una casilla
