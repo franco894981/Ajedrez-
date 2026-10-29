@@ -192,9 +192,13 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
               transform: `translate(${squareIndex(capturedInfo.square).file * 100}%, ${
                 squareIndex(capturedInfo.square).rank * 100
               }%)`,
+              animationDelay: energyCapture && !reducedMotion ? '250ms' : undefined,
             }}
           >
-            <div className="piece__inner">
+            <div
+              className="piece__inner"
+              style={{ animationDelay: energyCapture && !reducedMotion ? '250ms' : undefined }}
+            >
               <PieceArt
                 type={capturedInfo.type}
                 color={activeMove.applied.color === 'w' ? 'b' : 'w'}

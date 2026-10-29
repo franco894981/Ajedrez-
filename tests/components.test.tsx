@@ -11,8 +11,9 @@ import { GameScreen } from '../src/ui/components/GameScreen'
 import { PromotionDialog } from '../src/ui/components/PromotionDialog'
 import { ResultPanel } from '../src/ui/components/ResultPanel'
 import { GameSession, START_FEN } from '../src/game/engine'
-import type { Square } from '../src/game/types'
+import type { PieceType, Square } from '../src/game/types'
 import type { ActiveMove, useGame } from '../src/ui/useGame'
+import { resolveAIPromotion } from '../src/ui/useGame'
 import { MoveEffects } from '../src/ui/effects/MoveEffects'
 import { DEFAULT_SCENARIO, SCENARIO_LIST } from '../src/theme/scenarios'
 
@@ -27,8 +28,16 @@ function sessionWithSelection(fen: string, square: string) {
   return session
 }
 
-function visualCapture(pieceType: 'k' | 'n'): ActiveMove {
-  const from: Square = pieceType === 'n' ? 'g1' : 'e1'
+function visualCapture(pieceType: PieceType): ActiveMove {
+  const fromByType: Record<PieceType, Square> = {
+    p: 'd4',
+    r: 'a1',
+    n: 'g1',
+    b: 'c1',
+    q: 'd1',
+    k: 'e1',
+  }
+  const from = fromByType[pieceType]
   const to: Square = 'e2'
   return {
     key: 1,
@@ -51,7 +60,7 @@ function visualCapture(pieceType: 'k' | 'n'): ActiveMove {
       captured: { type: 'p', square: to, id: 2 },
       castling: null,
       enPassant: false,
-      san: pieceType === 'n' ? 'Nxe2' : 'Kxe2',
+      san: `${pieceType.toUpperCase()}xe2`,
       check: false,
       checkmate: false,
     },
@@ -163,7 +172,9 @@ describe('tablero', () => {
       />,
     )
 
-    expect(document.querySelector('.piece--ghost-energy')).toBeTruthy()
+    const energyGhost = document.querySelector('.piece--ghost-energy') as HTMLElement
+    expect(energyGhost).toBeTruthy()
+    expect(energyGhost.style.animationDelay).toBe('250ms')
     expect(document.querySelector('.fx--q .fx__beam--energy')).toBeTruthy()
     expect(document.querySelector('.fx--q .fx__impact--energy')).toBeTruthy()
   })
@@ -257,17 +268,61 @@ describe('impactos de pantalla y jaque', () => {
 })
 
 describe('efectos de captura', () => {
-  it('dispara el fogonazo de escopeta al aterrizar el caballo', () => {
+  it('lanza una bola de fuego desde la torre y explota con humo en el objetivo', () => {
+    const { container } = render(<MoveEffects activeMove={visualCapture('r')} reducedMotion={false} />)
+    const projectile = container.querySelector('.fx__projectile') as HTMLElement
+    const boom = container.querySelector('.fx__boom') as HTMLElement
+    const smoke = container.querySelector('.fx__smoke--bazooka') as HTMLElement
+
+    expect(projectile.style.getPropertyValue('--x1')).toBe('6.250%')
+    expect(projectile.style.getPropertyValue('--x2')).toBe('56.250%')
+    expect(projectile.style.animationDuration).toBe('260ms')
+    expect(boom.style.animationDelay).toBe('260ms')
+    expect(smoke.style.left).toBe('56.25%')
+    expect(smoke.style.animationDelay).toBe('260ms')
+  })
+
+  it('dispara el láser instantáneo del alfil con un destello de precisión', () => {
+    const { container } = render(<MoveEffects activeMove={visualCapture('b')} reducedMotion={false} />)
+    const beam = container.querySelector('.fx__beam--precision') as HTMLElement
+    const impact = container.querySelector('.fx__impact--precision') as HTMLElement
+
+    expect(beam.style.left).toBe('31.25%')
+    expect(beam.style.top).toBe('93.75%')
+    expect(beam.style.getPropertyValue('--angle')).not.toBe('')
+    expect(impact.style.left).toBe('56.25%')
+    expect(impact.style.top).toBe('81.25%')
+    expect(impact.style.animationDelay).toBe('100ms')
+  })
+
+  it('sincroniza el rayo púrpura con el impacto de energía de la dama', () => {
+    const { container } = render(<MoveEffects activeMove={visualCapture('q')} reducedMotion={false} />)
+    expect(container.querySelector('.fx--q .fx__beam--energy')).toBeTruthy()
+    expect((container.querySelector('.fx__impact--energy') as HTMLElement).style.animationDelay).toBe(
+      '250ms',
+    )
+    expect((container.querySelector('.fx__ring--energy') as HTMLElement).style.animationDelay).toBe(
+      '250ms',
+    )
+  })
+
+  it('dispara un cono amarillo al aterrizar el caballo', () => {
     const { container } = render(<MoveEffects activeMove={visualCapture('n')} reducedMotion={false} />)
     const flash = container.querySelector('.fx__flash--shotgun') as HTMLElement
     expect(flash).toBeTruthy()
     expect(flash.style.animationDelay).toBe('360ms')
+    expect(flash.style.getPropertyValue('--angle')).not.toBe('')
+    expect(container.querySelector('.fx__ring--shotgun')).toBeTruthy()
   })
 
-  it('añade una pequeña estela de humo al revólver del rey', () => {
+  it('da al rey un fogonazo amarillo y humo blanco en la víctima', () => {
     const { container } = render(<MoveEffects activeMove={visualCapture('k')} reducedMotion={false} />)
-    expect(container.querySelector('.fx__flash')).toBeTruthy()
-    expect(container.querySelector('.fx__smoke--revolver')).toBeTruthy()
+    const flash = container.querySelector('.fx__flash--revolver')
+    const smoke = container.querySelector('.fx__smoke--revolver') as HTMLElement
+    expect(flash).toBeTruthy()
+    expect(smoke.style.left).toBe('56.25%')
+    expect(smoke.style.top).toBe('81.25%')
+    expect(smoke.style.animationDelay).toBe('300ms')
   })
 
   it('sitúa el corte del peón en la víctima al capturar al paso', () => {
@@ -302,6 +357,7 @@ describe('efectos de captura', () => {
     const flash = container.querySelector('.fx__capture-flash') as HTMLElement
     expect(slash.style.left).toBe('43.75%')
     expect(slash.style.top).toBe('43.75%')
+    expect(slash.style.animationDelay).toBe('240ms')
     expect(flash.style.left).toBe('43.75%')
     expect(flash.style.top).toBe('43.75%')
     expect(flash.style.animationDelay).toBe('240ms')
@@ -327,8 +383,28 @@ describe('diálogo de promoción', () => {
     const buttons = within(dialog).getAllByRole('button')
     // 4 piezas + cerrar + cancelar
     expect(buttons.length).toBe(6)
-    fireEvent.click(within(dialog).getByText('Caballo').closest('button') as HTMLElement)
+    for (const [type, label] of [
+      ['q', 'Reina'],
+      ['r', 'Torre'],
+      ['b', 'Alfil'],
+      ['n', 'Caballo'],
+    ] as const) {
+      const choice = within(dialog).getByRole('button', {
+        name: new RegExp(`promocionar a ${label}`, 'i'),
+      })
+      expect(choice.getAttribute('data-promotion-type')).toBe(type)
+    }
+    const knightChoice = within(dialog).getByRole('button', { name: /promocionar a caballo/i })
+    fireEvent.click(knightChoice)
     expect(onChoose).toHaveBeenCalledWith('n')
+  })
+})
+
+describe('coronación de la IA', () => {
+  it('corona automáticamente como dama incluso si la búsqueda propone una subpromoción', () => {
+    expect(resolveAIPromotion('n')).toBe('q')
+    expect(resolveAIPromotion('r')).toBe('q')
+    expect(resolveAIPromotion(undefined)).toBeUndefined()
   })
 })
 

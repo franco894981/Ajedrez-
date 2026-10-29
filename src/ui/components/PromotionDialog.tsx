@@ -39,6 +39,8 @@ export function PromotionDialog({ pending, humanColor, onChoose, onCancel }: Pro
             key={choice}
             type="button"
             className="promotion__card"
+            aria-label={`Promocionar a ${CHOICE_LABEL[choice]} · ${CHOICE_WEAPON[choice]}`}
+            data-promotion-type={choice}
             onClick={() => onChoose(choice)}
             autoFocus={choice === 'q'}
           >

@@ -232,7 +232,7 @@ tests/
   ai.test.ts                Legalidad y comportamiento de la IA (10 pruebas)
   ui.flow.test.tsx          Flujo de interfaz y textos de resultado (12 pruebas)
   audio.test.ts             Activación explícita, mezcla y atenuación (2 pruebas)
-  components.test.tsx       Tablero, escenarios, promoción y efectos (16 pruebas)
+  components.test.tsx       Tablero, escenarios, promoción y efectos (20 pruebas)
   worker.test.ts            Contrato del worker, respaldo y duraciones (5 pruebas)
 scripts/
   render-pieces.tsx         Utilidad: genera docs/pieces-preview.png
@@ -304,7 +304,7 @@ No se ha generado ningún APK, ni anuncios, ni pagos, ni publicación.
 
 1. **No he podido ver la interfaz en un navegador real ni en un teléfono.**
    Este entorno no tiene navegador gráfico. Sí he ejecutado compilación de
-   tipos, empaquetado, las 73 pruebas automatizadas (incluidas pruebas de flujo
+   tipos, empaquetado, las 77 pruebas automatizadas (incluidas pruebas de flujo
    con jsdom) y he servido la app con Vite. El aspecto visual, el tacto y el
    audio deben validarse en tu teléfono.
 2. El audio no se ha escuchado en dispositivo: el volumen y el equilibrio
