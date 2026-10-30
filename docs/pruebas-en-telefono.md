@@ -53,7 +53,7 @@ navegador gráfico ni audio.
 - [ ] Tocar una pieza negra no la selecciona.
 - [ ] Tocar otra pieza propia cambia la selección.
 - [ ] Tocar la misma pieza deselecciona.
-- [ ] La pieza se desliza suavemente del origen al destino durante unos 220 ms.
+- [ ] La pieza se desliza suavemente del origen al destino durante unos 440 ms.
 - [ ] En una captura, el deslizador llega primero y el efecto del arma empieza
       al aterrizar; no se pisan ni se adelantan.
 - [ ] Durante la animación no se puede mover otra pieza (no se duplican jugadas).

@@ -174,13 +174,43 @@ describe('tablero', () => {
 
     const energyGhost = document.querySelector('.piece--ghost-energy') as HTMLElement
     expect(energyGhost).toBeTruthy()
-    expect(energyGhost.style.animationDelay).toBe('470ms')
+    expect(energyGhost.style.animationDelay).toBe('690ms')
     expect((document.querySelector('.board') as HTMLElement).style.getPropertyValue('--travel')).toBe(
-      '220ms',
+      '440ms',
     )
     expect(document.querySelector('.piece--moving')).toBeTruthy()
     expect(document.querySelector('.fx--q .fx__beam--energy')).toBeTruthy()
     expect(document.querySelector('.fx--q .fx__impact--energy')).toBeTruthy()
+  })
+
+  it('aplica el mismo deslizamiento de 440 ms a una jugada de la IA', () => {
+    const session = new GameSession(START_FEN, { humanColor: 'w' })
+    expect(session.applyMove({ from: 'e2', to: 'e4' }, 'w').ok).toBe(true)
+    const outcome = session.playAIMove({ from: 'e7', to: 'e5' })
+    expect(outcome.ok).toBe(true)
+    const snapshot = session.getSnapshot()
+    const activeMove: ActiveMove = {
+      key: 4,
+      motion: snapshot.motion!,
+      applied: outcome.move!,
+    }
+
+    render(
+      <Board
+        snapshot={snapshot}
+        activeMove={activeMove}
+        busy
+        reducedMotion={false}
+        humanColor="w"
+        onSquareTap={() => {}}
+      />,
+    )
+
+    const movingBlackPiece = document.querySelector('.piece--b.piece--moving') as HTMLElement
+    expect(movingBlackPiece.getAttribute('data-square')).toBe('e5')
+    expect((document.querySelector('.board') as HTMLElement).style.getPropertyValue('--travel')).toBe(
+      '440ms',
+    )
   })
 
   it('deshabilita el tablero mientras se resuelve un movimiento', () => {
@@ -255,7 +285,7 @@ describe('impactos de pantalla y jaque', () => {
 
     const gameElement = container.querySelector('.game') as HTMLElement
     expect(gameElement.classList.contains('game--capture-hit')).toBe(true)
-    expect(gameElement.style.animationDelay).toBe('220ms')
+    expect(gameElement.style.animationDelay).toBe('440ms')
     rerender(
       <GameScreen
         {...props}
@@ -309,10 +339,10 @@ describe('efectos de captura', () => {
     expect(projectile.style.getPropertyValue('--x1')).toBe('6.250%')
     expect(projectile.style.getPropertyValue('--x2')).toBe('56.250%')
     expect(projectile.style.animationDuration).toBe('260ms')
-    expect(projectile.style.animationDelay).toBe('220ms')
-    expect(boom.style.animationDelay).toBe('480ms')
+    expect(projectile.style.animationDelay).toBe('440ms')
+    expect(boom.style.animationDelay).toBe('700ms')
     expect(smoke.style.left).toBe('56.25%')
-    expect(smoke.style.animationDelay).toBe('480ms')
+    expect(smoke.style.animationDelay).toBe('700ms')
   })
 
   it('dispara el láser instantáneo del alfil con un destello de precisión', () => {
@@ -323,22 +353,22 @@ describe('efectos de captura', () => {
     expect(beam.style.left).toBe('31.25%')
     expect(beam.style.top).toBe('93.75%')
     expect(beam.style.getPropertyValue('--angle')).not.toBe('')
-    expect(beam.style.animationDelay).toBe('220ms')
+    expect(beam.style.animationDelay).toBe('440ms')
     expect(impact.style.left).toBe('56.25%')
     expect(impact.style.top).toBe('81.25%')
-    expect(impact.style.animationDelay).toBe('320ms')
+    expect(impact.style.animationDelay).toBe('540ms')
   })
 
   it('sincroniza el rayo púrpura con el impacto de energía de la dama', () => {
     const { container } = render(<MoveEffects activeMove={visualCapture('q')} reducedMotion={false} />)
     expect((container.querySelector('.fx--q .fx__beam--energy') as HTMLElement).style.animationDelay).toBe(
-      '220ms',
+      '440ms',
     )
     expect((container.querySelector('.fx__impact--energy') as HTMLElement).style.animationDelay).toBe(
-      '470ms',
+      '690ms',
     )
     expect((container.querySelector('.fx__ring--energy') as HTMLElement).style.animationDelay).toBe(
-      '470ms',
+      '690ms',
     )
   })
 
@@ -346,7 +376,7 @@ describe('efectos de captura', () => {
     const { container } = render(<MoveEffects activeMove={visualCapture('n')} reducedMotion={false} />)
     const flash = container.querySelector('.fx__flash--shotgun') as HTMLElement
     expect(flash).toBeTruthy()
-    expect(flash.style.animationDelay).toBe('220ms')
+    expect(flash.style.animationDelay).toBe('440ms')
     expect(flash.style.getPropertyValue('--angle')).not.toBe('')
     expect(container.querySelector('.fx__ring--shotgun')).toBeTruthy()
   })
@@ -356,11 +386,11 @@ describe('efectos de captura', () => {
     const flash = container.querySelector('.fx__flash--revolver') as HTMLElement
     const tracer = container.querySelector('.fx__tracer') as HTMLElement
     const smoke = container.querySelector('.fx__smoke--revolver') as HTMLElement
-    expect(flash.style.animationDelay).toBe('220ms')
-    expect(tracer.style.animationDelay).toBe('220ms')
+    expect(flash.style.animationDelay).toBe('440ms')
+    expect(tracer.style.animationDelay).toBe('440ms')
     expect(smoke.style.left).toBe('56.25%')
     expect(smoke.style.top).toBe('81.25%')
-    expect(smoke.style.animationDelay).toBe('220ms')
+    expect(smoke.style.animationDelay).toBe('440ms')
   })
 
   it('sitúa el corte del peón en la víctima al capturar al paso', () => {
@@ -395,10 +425,10 @@ describe('efectos de captura', () => {
     const flash = container.querySelector('.fx__capture-flash') as HTMLElement
     expect(slash.style.left).toBe('43.75%')
     expect(slash.style.top).toBe('43.75%')
-    expect(slash.style.animationDelay).toBe('220ms')
+    expect(slash.style.animationDelay).toBe('440ms')
     expect(flash.style.left).toBe('43.75%')
     expect(flash.style.top).toBe('43.75%')
-    expect(flash.style.animationDelay).toBe('220ms')
+    expect(flash.style.animationDelay).toBe('440ms')
   })
 })
 

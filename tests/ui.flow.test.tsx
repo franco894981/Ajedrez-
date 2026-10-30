@@ -140,7 +140,7 @@ describe('flujo de la interfaz', () => {
 
     // Durante la animación no se aceptan nuevas acciones.
     expect(screen.getByText('Movimiento en curso')).toBeTruthy()
-    expect((document.querySelector('.board') as HTMLElement).style.getPropertyValue('--travel')).toBe('220ms')
+    expect((document.querySelector('.board') as HTMLElement).style.getPropertyValue('--travel')).toBe('440ms')
     expect(pieceOn('e4')?.classList.contains('piece--moving')).toBe(true)
     const target = document.querySelector('[data-square="e4"]') as HTMLButtonElement
     expect(target.disabled).toBe(true)

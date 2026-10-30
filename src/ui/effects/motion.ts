@@ -1,13 +1,13 @@
 import type { AppliedMove, PieceType } from '../../game/types'
 
-/** Deslizamiento corto y uniforme para que toda pieza llegue en 0,22 s. */
+/** Deslizamiento uniforme de 0,44 s para todas las piezas y ambos bandos. */
 export const TRAVEL_MS: Record<PieceType, number> = {
-  p: 220,
-  n: 220,
-  b: 220,
-  r: 220,
-  q: 220,
-  k: 220,
+  p: 440,
+  n: 440,
+  b: 440,
+  r: 440,
+  q: 440,
+  k: 440,
 }
 
 /** Tiempo máximo de los efectos de captura, contado desde que la pieza aterriza. */
@@ -36,12 +36,12 @@ export function impactOffset(piece: PieceType, reducedMotion: boolean): number {
 }
 
 export function travelDuration(piece: PieceType, reducedMotion: boolean): number {
-  return reducedMotion ? 0 : TRAVEL_MS[piece] ?? 220
+  return reducedMotion ? 0 : TRAVEL_MS[piece] ?? 440
 }
 
 export function moveDuration(applied: AppliedMove, reducedMotion: boolean): number {
   if (reducedMotion) return applied.captured ? 200 : 130
-  const travel = TRAVEL_MS[applied.piece] ?? 220
+  const travel = TRAVEL_MS[applied.piece] ?? 440
   if (!applied.captured) return travel + 80
   const capture = CAPTURE_FX_MS[applied.piece] ?? 520
   // Se serializan deslizamiento e impacto; el pequeño margen evita cortar el último frame.
