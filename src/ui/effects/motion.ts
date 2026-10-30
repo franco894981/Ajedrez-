@@ -20,6 +20,9 @@ export const CAPTURE_FX_MS: Record<PieceType, number> = {
   k: 520,
 }
 
+/** Duración de la reacción de muerte de una víctima (antes de reducir movimiento). */
+export const CAPTURE_DEATH_MS = 500
+
 /** Desfase entre el inicio del arma y el impacto visible de la víctima. */
 export function impactOffset(piece: PieceType, reducedMotion: boolean): number {
   if (reducedMotion) return 0
@@ -44,6 +47,7 @@ export function moveDuration(applied: AppliedMove, reducedMotion: boolean): numb
   const travel = TRAVEL_MS[applied.piece] ?? 440
   if (!applied.captured) return travel + 80
   const capture = CAPTURE_FX_MS[applied.piece] ?? 520
-  // Se serializan deslizamiento e impacto; el pequeño margen evita cortar el último frame.
-  return travel + capture + 20
+  const victimDeath = impactOffset(applied.piece, false) + CAPTURE_DEATH_MS
+  // El tablero sigue bloqueado hasta acabar el efecto más largo y caer la víctima.
+  return travel + Math.max(capture, victimDeath) + 20
 }

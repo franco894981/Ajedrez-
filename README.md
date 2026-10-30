@@ -153,27 +153,34 @@ Efectos de captura (`src/ui/effects/`), breves y distintos:
 | Torre | Proyectil y explosión localizada |
 | Alfil | Línea láser de precisión verde clara e impacto |
 | Caballo | Salto en arco + fogonazo de escopeta al aterrizar |
-| Dama | Rayo violeta/cian y desintegración visual de la víctima |
+| Dama | Rayo violeta/cian y halo de energía en el impacto |
 | Rey | Fogonazo de revólver, trazadora y humo breve |
 
 Los destellos son de escala local y no cubren casillas vecinas. El atacante se
-desliza durante 440 ms; el arma y el impacto esperan a su llegada. Según la pieza,
-la secuencia visual completa dura entre unos 0,98 y 1,22 s. Las explosiones son
-solo visuales: nunca eliminan piezas adicionales. No hay daño de área, fuego
-amigo, munición ni vida.
+desliza durante 440 ms; al disparar aparece un fogonazo en el arma y una traza
+breve hacia la víctima. La pieza atacante reacciona con un retroceso sutil de
+2–3 px (el peón hace una estocada). Las piezas capturadas menores caen de lado
+90° y se desvanecen durante 500 ms; la dama y el rey se reducen bajo un destello
+luminoso. El tablero sigue bloqueado hasta que termina el efecto más largo y la
+víctima desaparece. Según la pieza, la secuencia visual completa dura entre unos
+0,98 y 1,22 s. Las explosiones son solo visuales: nunca eliminan piezas
+adicionales. No hay daño de área, fuego amigo, munición ni vida.
 
-**Animaciones reducidas** (`Ajustes` o `prefers-reduced-motion`): traslados
-instantáneos, efectos de ~140 ms y fondo sin brasas ni pulsos.
+Las piezas en reposo tienen una respiración discreta (escala máxima 1,2 % en un
+ciclo de 8 s). **Animaciones reducidas** (`Ajustes` o `prefers-reduced-motion`)
+deshabilita la respiración y acorta las animaciones de combate a ~140 ms; los
+traslados siguen siendo instantáneos.
 
 ### Cómo se garantiza que la animación no desincroniza
 
 - `GameSession` aplica la jugada y la registra **antes** de cualquier efecto.
 - El tablero se dibuja siempre desde `snapshot.pieces` (estado lógico). El
   `transform` suaviza el paso del origen al destino durante 440 ms.
-- Los efectos de ataque esperan al aterrizaje; la víctima queda visible hasta
-  el impacto y luego se desvanece como "fantasma" temporal fuera del estado.
+- Los efectos de ataque esperan al aterrizaje; la víctima permanece visible
+  hasta el impacto y su animación de caída o destello dura 500 ms.
 - El bloqueo (`locked`) impide toques y también rechaza movimientos directos
-  del motor o de la IA hasta terminar; el temporizador se cancela al reiniciar.
+  del motor o de la IA hasta que termine la animación más larga; el temporizador
+  se cancela al reiniciar.
 
 ---
 

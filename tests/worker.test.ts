@@ -2,7 +2,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { Chess } from 'chess.js'
 import { START_FEN } from '../src/game/engine'
 import { AIClient } from '../src/game/ai/aiClient'
-import { CAPTURE_FX_MS, moveDuration, TRAVEL_MS } from '../src/ui/effects/motion'
+import {
+  CAPTURE_DEATH_MS,
+  CAPTURE_FX_MS,
+  impactOffset,
+  moveDuration,
+  TRAVEL_MS,
+} from '../src/ui/effects/motion'
 
 interface Posted {
   type: string
@@ -80,7 +86,7 @@ describe('duración de animaciones', () => {
     }
   })
 
-  it('espera a que termine el deslizamiento y luego reserva el tiempo del efecto de captura', () => {
+  it('mantiene el turno bloqueado hasta que termina la muerte de la víctima', () => {
     const baseCapture = {
       from: 'e4' as const,
       to: 'd5' as const,
@@ -96,8 +102,9 @@ describe('duración de animaciones', () => {
 
     for (const piece of ['p', 'n', 'b', 'r', 'q', 'k'] as const) {
       const duration = moveDuration({ ...baseCapture, piece }, false)
-      expect(duration).toBe(TRAVEL_MS[piece] + CAPTURE_FX_MS[piece] + 20)
-      expect(duration).toBeGreaterThan(TRAVEL_MS[piece])
+      const deathEnd = impactOffset(piece, false) + CAPTURE_DEATH_MS
+      expect(duration).toBe(TRAVEL_MS[piece] + Math.max(CAPTURE_FX_MS[piece], deathEnd) + 20)
+      expect(duration).toBeGreaterThanOrEqual(TRAVEL_MS[piece] + deathEnd)
     }
   })
 
