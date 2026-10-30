@@ -10,15 +10,34 @@
  */
 import type { CSSProperties } from 'react'
 import type { ActiveMove } from '../useGame'
-import type { Square } from '../../game/types'
+import type { PieceType, Square } from '../../game/types'
 import { impactOffset, travelDuration } from './motion'
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+
+// Puntas aproximadas de las armas en el viewBox 120×120 de PieceArt.
+const WEAPON_MUZZLE: Record<PieceType, { x: number; y: number }> = {
+  p: { x: 109, y: 33 },
+  n: { x: 93, y: 75 },
+  b: { x: 30, y: 27 },
+  r: { x: 102, y: 68 },
+  q: { x: -14, y: 28 },
+  k: { x: 114, y: 78 },
+}
 
 function center(square: Square): { x: number; y: number } {
   const file = FILES.indexOf(square[0])
   const rank = 8 - Number.parseInt(square[1], 10)
   return { x: (file + 0.5) * 12.5, y: (rank + 0.5) * 12.5 }
+}
+
+function weaponMuzzle(square: Square, piece: PieceType): { x: number; y: number } {
+  const squareCenter = center(square)
+  const local = WEAPON_MUZZLE[piece]
+  return {
+    x: squareCenter.x + ((local.x - 60) / 120) * 12.5,
+    y: squareCenter.y + ((local.y - 60) / 120) * 12.5,
+  }
 }
 
 const pct = (value: number) => `${value.toFixed(3)}%`
@@ -30,7 +49,6 @@ interface Props {
 
 export function MoveEffects({ activeMove, reducedMotion }: Props) {
   const { motion, applied } = activeMove
-  const from = center(motion.from)
   const to = center(motion.to)
   // En captura al paso la víctima no está en la casilla de llegada del peón.
   const impact = center(applied.captured?.square ?? motion.to)
@@ -40,17 +58,25 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
   const landingDelay = travelDuration(applied.piece, reducedMotion)
   const impactDelay = landingDelay + impactOffset(applied.piece, reducedMotion)
   const projectileDuration = reducedMotion ? 0 : 260
+  const muzzle = weaponMuzzle(motion.from, type)
+  const shotDx = impact.x - muzzle.x
+  const shotDy = impact.y - muzzle.y
+  const shotLength = Math.hypot(shotDx, shotDy)
+  const shotAngle = (Math.atan2(shotDy, shotDx) * 180) / Math.PI
 
-  const dx = to.x - from.x
-  const dy = to.y - from.y
-  const length = Math.hypot(dx, dy)
-  const angle = (Math.atan2(dy, dx) * 180) / Math.PI
+  const muzzleStyle = {
+    left: pct(muzzle.x),
+    top: pct(muzzle.y),
+    animationDelay: `${landingDelay}ms`,
+    '--angle': `${shotAngle.toFixed(2)}deg`,
+  } as CSSProperties
+  const muzzleTrailStyle = { ...muzzleStyle, width: pct(shotLength) } as CSSProperties
 
   const beamStyle = {
-    left: pct(from.x),
-    top: pct(from.y),
-    width: pct(length),
-    '--angle': `${angle.toFixed(2)}deg`,
+    left: pct(muzzle.x),
+    top: pct(muzzle.y),
+    width: pct(shotLength),
+    '--angle': `${shotAngle.toFixed(2)}deg`,
   } as CSSProperties
 
   return (
@@ -78,6 +104,13 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
             animationDelay: `${impactDelay}ms`,
           }}
         />
+      )}
+
+      {captured && (
+        <>
+          <span className="fx__muzzle-flash" style={muzzleStyle} />
+          <span className="fx__muzzle-trail" style={muzzleTrailStyle} />
+        </>
       )}
 
       {captured && type === 'p' && (
@@ -108,8 +141,8 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
             className="fx__projectile"
             style={
               {
-                '--x1': pct(from.x),
-                '--y1': pct(from.y),
+                '--x1': pct(muzzle.x),
+                '--y1': pct(muzzle.y),
                 '--x2': pct(impact.x),
                 '--y2': pct(impact.y),
                 animationDuration: `${projectileDuration}ms`,
@@ -169,7 +202,7 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
               left: pct(impact.x),
               top: pct(impact.y),
               animationDelay: `${landingDelay}ms`,
-              '--angle': `${angle.toFixed(2)}deg`,
+              '--angle': `${shotAngle.toFixed(2)}deg`,
             } as CSSProperties}
           />
           <span
@@ -212,17 +245,17 @@ export function MoveEffects({ activeMove, reducedMotion }: Props) {
         <>
           <span
             className="fx__flash fx__flash--revolver"
-            style={{ left: pct(from.x), top: pct(from.y), animationDelay: `${landingDelay}ms` }}
+            style={{ left: pct(muzzle.x), top: pct(muzzle.y), animationDelay: `${landingDelay}ms` }}
           />
           <span
             className="fx__tracer"
             style={
               {
-                left: pct(from.x),
-                top: pct(from.y),
-                width: pct(length * 0.85),
+                left: pct(muzzle.x),
+                top: pct(muzzle.y),
+                width: pct(shotLength * 0.85),
                 animationDelay: `${landingDelay}ms`,
-                '--angle': `${angle.toFixed(2)}deg`,
+                '--angle': `${shotAngle.toFixed(2)}deg`,
               } as CSSProperties
             }
           />

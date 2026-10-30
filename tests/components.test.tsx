@@ -148,6 +148,24 @@ describe('tablero', () => {
     expect(onTap).toHaveBeenCalledWith('d5')
   })
 
+  it('anima la respiración lenta de las piezas cuando están en reposo', () => {
+    const session = new GameSession(START_FEN, { humanColor: 'w' })
+    render(
+      <Board
+        snapshot={session.getSnapshot()}
+        activeMove={null}
+        busy={false}
+        reducedMotion={false}
+        humanColor="w"
+        onSquareTap={() => {}}
+      />,
+    )
+
+    const breathingPieces = Array.from(document.querySelectorAll('.piece__breath')) as HTMLElement[]
+    expect(breathingPieces).toHaveLength(32)
+    expect(breathingPieces[0].style.animationDelay).not.toBe(breathingPieces[1].style.animationDelay)
+  })
+
   it('muestra el rayo energético de la reina y disuelve la víctima capturada', () => {
     const session = new GameSession('8/4k3/8/3r4/3Q4/8/8/4K3 w - - 0 1', {
       humanColor: 'w',
@@ -174,14 +192,71 @@ describe('tablero', () => {
 
     const energyGhost = document.querySelector('.piece--ghost-energy') as HTMLElement
     expect(energyGhost).toBeTruthy()
+    expect(energyGhost.classList.contains('piece--ghost-fall')).toBe(true)
+    expect(energyGhost.dataset.deathMode).toBe('fall')
     expect(energyGhost.style.animationDelay).toBe('690ms')
+    expect(energyGhost.style.getPropertyValue('--death-duration')).toBe('500ms')
     expect((document.querySelector('.board') as HTMLElement).style.getPropertyValue('--travel')).toBe(
       '440ms',
     )
     expect(document.querySelector('.piece--moving')).toBeTruthy()
+    const recoil = document.querySelector('.piece--moving .piece__recoil--active') as HTMLElement
+    expect(recoil.style.animationDelay).toBe('440ms')
+    expect(recoil.style.getPropertyValue('--recoil-y')).toBe('2.5px')
     expect(document.querySelector('.fx--q .fx__beam--energy')).toBeTruthy()
     expect(document.querySelector('.fx--q .fx__impact--energy')).toBeTruthy()
   })
+
+  for (const victimType of ['q', 'k'] as const) {
+    it(`da a la víctima mayor ${victimType} un destello de muerte`, () => {
+      const session = new GameSession(START_FEN, { humanColor: 'w' })
+      const snapshot = session.getSnapshot()
+      const attacker = snapshot.pieces.find((piece) => piece.type === 'n' && piece.color === 'w')!
+      const activeMove: ActiveMove = {
+        key: victimType === 'q' ? 31 : 32,
+        motion: {
+          pieceId: attacker.id,
+          from: 'g1',
+          to: 'f3',
+          pieceType: 'n',
+          color: 'w',
+          captured: true,
+          capturedPieceType: victimType,
+          castling: null,
+          enPassant: false,
+        },
+        applied: {
+          from: 'g1',
+          to: 'f3',
+          color: 'w',
+          piece: 'n',
+          captured: { type: victimType, square: 'f3', id: 99 },
+          castling: null,
+          enPassant: false,
+          san: 'Nxf3',
+          check: false,
+          checkmate: false,
+        },
+      }
+
+      const { container } = render(
+        <Board
+          snapshot={snapshot}
+          activeMove={activeMove}
+          busy
+          reducedMotion={false}
+          humanColor="w"
+          onSquareTap={() => {}}
+        />,
+      )
+      const ghost = container.querySelector('.piece--ghost') as HTMLElement
+      expect(ghost.classList.contains('piece--ghost-major')).toBe(true)
+      expect(ghost.dataset.deathMode).toBe('major')
+      expect(ghost.dataset.capturedType).toBe(victimType)
+      expect(ghost.style.getPropertyValue('--death-duration')).toBe('500ms')
+      expect(ghost.querySelector('.piece__death-body')).toBeTruthy()
+    })
+  }
 
   it('aplica el mismo deslizamiento de 440 ms a una jugada de la IA', () => {
     const session = new GameSession(START_FEN, { humanColor: 'w' })
@@ -336,7 +411,8 @@ describe('efectos de captura', () => {
     const boom = container.querySelector('.fx__boom') as HTMLElement
     const smoke = container.querySelector('.fx__smoke--bazooka') as HTMLElement
 
-    expect(projectile.style.getPropertyValue('--x1')).toBe('6.250%')
+    expect(projectile.style.getPropertyValue('--x1')).toBe('10.625%')
+    expect(projectile.style.getPropertyValue('--y1')).toBe('94.583%')
     expect(projectile.style.getPropertyValue('--x2')).toBe('56.250%')
     expect(projectile.style.animationDuration).toBe('260ms')
     expect(projectile.style.animationDelay).toBe('440ms')
@@ -345,13 +421,28 @@ describe('efectos de captura', () => {
     expect(smoke.style.animationDelay).toBe('700ms')
   })
 
+  it('emite un destello en el arma y una traza que parte hacia la víctima', () => {
+    const { container } = render(<MoveEffects activeMove={visualCapture('r')} reducedMotion={false} />)
+    const muzzle = container.querySelector('.fx__muzzle-flash') as HTMLElement
+    const trail = container.querySelector('.fx__muzzle-trail') as HTMLElement
+
+    expect(muzzle.style.left).toBe('10.625%')
+    expect(muzzle.style.top).toBe('94.583%')
+    expect(muzzle.style.animationDelay).toBe('440ms')
+    expect(trail.style.left).toBe('10.625%')
+    expect(trail.style.top).toBe('94.583%')
+    expect(trail.style.width).not.toBe('')
+    expect(trail.style.getPropertyValue('--angle')).not.toBe('')
+    expect(trail.style.animationDelay).toBe('440ms')
+  })
+
   it('dispara el láser instantáneo del alfil con un destello de precisión', () => {
     const { container } = render(<MoveEffects activeMove={visualCapture('b')} reducedMotion={false} />)
     const beam = container.querySelector('.fx__beam--precision') as HTMLElement
     const impact = container.querySelector('.fx__impact--precision') as HTMLElement
 
-    expect(beam.style.left).toBe('31.25%')
-    expect(beam.style.top).toBe('93.75%')
+    expect(beam.style.left).toBe('28.125%')
+    expect(beam.style.top).toBe('90.313%')
     expect(beam.style.getPropertyValue('--angle')).not.toBe('')
     expect(beam.style.animationDelay).toBe('440ms')
     expect(impact.style.left).toBe('56.25%')

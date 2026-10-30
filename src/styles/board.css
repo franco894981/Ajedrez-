@@ -220,34 +220,115 @@
   animation: knightHop var(--travel, 440ms) cubic-bezier(0.3, 0.1, 0.4, 1);
 }
 
+.piece__breath,
+.piece__recoil,
+.piece__death-body {
+  width: 100%;
+  height: 100%;
+}
+
+.piece__breath {
+  transform-origin: 50% 88%;
+  animation: pieceBreath 8s ease-in-out infinite;
+}
+
+.piece__breath--moving {
+  animation: none;
+  transform: none;
+}
+
+.piece__recoil--active {
+  transform-origin: 50% 84%;
+  animation: attackerRecoil 220ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.piece__recoil--p {
+  animation: swordLunge 230ms ease-out both;
+}
+
+.piece__recoil--r {
+  animation: bazookaRecoil 250ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.piece__recoil--k {
+  animation: revolverRecoil 210ms ease-out both;
+}
+
 .piece--ghost {
   z-index: 1;
-  animation: ghostOut 460ms ease-out forwards;
+  animation: capturedVictimFade var(--death-duration, 500ms) ease-in both;
   filter: grayscale(0.4) brightness(0.85);
 }
 
-.piece--ghost .piece__inner {
-  animation: ghostKick 460ms ease-out forwards;
+.piece--ghost .piece__death-body {
+  transform-origin: 50% 86%;
 }
 
-/* La reina convierte la desaparición de la víctima en una desintegración breve. */
-.piece--ghost-energy {
-  animation: energyGhostOut 430ms ease-out forwards;
+.piece--ghost-fall .piece__death-body {
+  animation: capturedFall var(--death-duration, 500ms) ease-in both;
 }
 
-.piece--ghost-energy .piece__inner {
-  animation: energyGhostKick 430ms ease-out forwards;
+.piece--ghost-major {
+  filter: grayscale(0.1) brightness(1.04);
+}
+
+.piece--ghost-major .piece__death-body {
+  animation: majorDissolve var(--death-duration, 500ms) ease-in both;
+}
+
+.piece--ghost-major::before,
+.piece--ghost-energy::after {
+  content: '';
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+
+.piece--ghost-major::before {
+  z-index: 1;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 242, 0.95) 0 9%,
+    rgba(255, 225, 151, 0.72) 23%,
+    rgba(255, 166, 75, 0.24) 46%,
+    transparent 72%
+  );
+  animation: majorDeathFlash var(--death-duration, 500ms) ease-out both;
+  animation-delay: var(--capture-delay, 0ms);
+}
+
+/* La dama conserva un halo de energía propio además de la muerte de la víctima. */
+.piece--ghost-energy::after {
+  z-index: 2;
+  background: radial-gradient(
+    circle,
+    rgba(243, 226, 255, 0.78) 0 8%,
+    rgba(161, 98, 255, 0.5) 28%,
+    rgba(94, 210, 255, 0.16) 52%,
+    transparent 74%
+  );
+  animation: energyDeathAura 430ms ease-out both;
+  animation-delay: var(--capture-delay, 0ms);
 }
 
 .board--reduced .piece {
   transition: none;
 }
 
+.board--reduced .piece__breath {
+  animation: none;
+  transform: none;
+}
+
 .board--reduced .piece__inner--hop,
+.board--reduced .piece__recoil--active,
 .board--reduced .piece--ghost,
-.board--reduced .piece--ghost .piece__inner,
-.board--reduced .piece--ghost-energy,
-.board--reduced .piece--ghost-energy .piece__inner {
+.board--reduced .piece--ghost .piece__death-body,
+.board--reduced .piece--ghost::before,
+.board--reduced .piece--ghost::after {
   animation-duration: 140ms;
 }
 
@@ -266,54 +347,153 @@
   }
 }
 
-@keyframes ghostOut {
-  0% {
-    opacity: 0.95;
-  }
-  60% {
-    opacity: 0.55;
-  }
+@keyframes pieceBreath {
+  0%,
   100% {
-    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.012);
   }
 }
 
-@keyframes ghostKick {
-  0% {
-    transform: scale(1) rotate(0deg);
-  }
-  55% {
-    transform: scale(0.82) rotate(9deg);
-  }
+@keyframes attackerRecoil {
+  0%,
   100% {
-    transform: scale(0.7) rotate(14deg) translateY(10%);
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  22% {
+    transform: translate3d(var(--recoil-x), var(--recoil-y), 0) rotate(-1deg);
+  }
+  46% {
+    transform: translate3d(var(--rebound-x), var(--rebound-y), 0) rotate(0.5deg);
+  }
+  70% {
+    transform: translate3d(var(--settle-x), var(--settle-y), 0) rotate(-0.2deg);
   }
 }
 
-@keyframes energyGhostOut {
-  0% {
-    opacity: 0.95;
-    filter: saturate(1) hue-rotate(0deg) brightness(0.95) blur(0);
-  }
-  42% {
-    opacity: 0.82;
-    filter: saturate(1.8) hue-rotate(150deg) brightness(1.45) blur(0);
-  }
+@keyframes swordLunge {
+  0%,
   100% {
-    opacity: 0;
-    filter: saturate(1.4) hue-rotate(190deg) brightness(2) blur(4px);
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  28% {
+    transform: translate3d(var(--strike-x), var(--strike-y), 0) rotate(-1.2deg);
+  }
+  56% {
+    transform: translate3d(var(--recoil-x), var(--recoil-y), 0) rotate(0.6deg);
+  }
+  76% {
+    transform: translate3d(var(--settle-x), var(--settle-y), 0) rotate(-0.2deg);
   }
 }
 
-@keyframes energyGhostKick {
+@keyframes bazookaRecoil {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  18% {
+    transform: translate3d(var(--recoil-x), var(--recoil-y), 0) rotate(-1.5deg);
+  }
+  40% {
+    transform: translate3d(var(--rebound-x), var(--rebound-y), 0) rotate(0.8deg);
+  }
+  58% {
+    transform: translate3d(var(--recoil-x), var(--recoil-y), 0) rotate(-0.4deg);
+  }
+  76% {
+    transform: translate3d(var(--settle-x), var(--settle-y), 0) rotate(0deg);
+  }
+}
+
+@keyframes revolverRecoil {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  20% {
+    transform: translate3d(var(--recoil-x), var(--recoil-y), 0) rotate(-1.2deg);
+  }
+  44% {
+    transform: translate3d(var(--rebound-x), var(--rebound-y), 0) rotate(0.5deg);
+  }
+  66% {
+    transform: translate3d(var(--settle-x), var(--settle-y), 0) rotate(-0.15deg);
+  }
+}
+
+@keyframes capturedVictimFade {
   0% {
-    transform: scale(1) rotate(0deg);
+    opacity: 1;
   }
   48% {
-    transform: scale(0.8) rotate(12deg);
+    opacity: 0.72;
   }
   100% {
-    transform: scale(0.14) rotate(32deg);
+    opacity: 0;
+  }
+}
+
+@keyframes capturedFall {
+  0% {
+    transform: rotate(0deg) translate3d(0, 0, 0) scale(1);
+  }
+  22% {
+    transform: rotate(8deg) translate3d(1%, -1%, 0) scale(1.02);
+  }
+  100% {
+    transform: rotate(90deg) translate3d(14%, 6%, 0) scale(0.86);
+  }
+}
+
+@keyframes majorDissolve {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1);
+  }
+  42% {
+    transform: scale(0.9) rotate(5deg) translateY(-2%);
+    filter: brightness(1.45);
+  }
+  100% {
+    transform: scale(0.24) rotate(-18deg) translateY(-22%);
+    filter: brightness(2.2);
+  }
+}
+
+@keyframes majorDeathFlash {
+  0% {
+    transform: scale(0.18);
+    opacity: 0;
+  }
+  14% {
+    transform: scale(0.78);
+    opacity: 1;
+  }
+  46% {
+    transform: scale(1.28);
+    opacity: 0.62;
+  }
+  100% {
+    transform: scale(1.72);
+    opacity: 0;
+  }
+}
+
+@keyframes energyDeathAura {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  36% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
   }
 }
 

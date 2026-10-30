@@ -8,7 +8,7 @@
 import { useMemo, type CSSProperties } from 'react'
 import type { GameSnapshot, PieceType, Square } from '../../game/types'
 import type { ActiveMove } from '../useGame'
-import { impactOffset, travelDuration } from '../effects/motion'
+import { CAPTURE_DEATH_MS, impactOffset, travelDuration } from '../effects/motion'
 import { PieceArt } from './PieceArt'
 import { MoveEffects } from '../effects/MoveEffects'
 
@@ -36,6 +36,27 @@ const PIECE_WEAPON: Record<PieceType, string> = {
 
 function squareIndex(square: Square): { file: number; rank: number } {
   return { file: FILES.indexOf(square[0] as (typeof FILES)[number]), rank: 8 - Number(square[1]) }
+}
+
+function attackNudgeStyle(from: Square, to: Square): CSSProperties {
+  const source = squareIndex(from)
+  const target = squareIndex(to)
+  const dx = target.file - source.file
+  const dy = target.rank - source.rank
+  const distance = Math.hypot(dx, dy) || 1
+  const forwardX = (dx / distance) * 2.5
+  const forwardY = (dy / distance) * 2.5
+
+  return {
+    '--recoil-x': `${-forwardX}px`,
+    '--recoil-y': `${-forwardY}px`,
+    '--rebound-x': `${forwardX * 0.35}px`,
+    '--rebound-y': `${forwardY * 0.35}px`,
+    '--strike-x': `${forwardX * 1.15}px`,
+    '--strike-y': `${forwardY * 1.15}px`,
+    '--settle-x': `${forwardX * 0.18}px`,
+    '--settle-y': `${forwardY * 0.18}px`,
+  } as CSSProperties
 }
 
 interface Props {
@@ -66,6 +87,12 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
   const capturedInfo = activeMove?.applied.captured ?? null
   const movingPieceId = activeMove?.motion.pieceId ?? null
   const energyCapture = activeMove?.motion.pieceType === 'q' && Boolean(capturedInfo)
+  const capturedDeathMode =
+    capturedInfo && (capturedInfo.type === 'q' || capturedInfo.type === 'k') ? 'major' : 'fall'
+  const recoilVars = activeMove?.applied.captured
+    ? attackNudgeStyle(activeMove.motion.from, activeMove.motion.to)
+    : undefined
+  const deathDuration = reducedMotion ? 140 : CAPTURE_DEATH_MS
 
   const travel = activeMove ? travelDuration(activeMove.applied.piece, reducedMotion) : 0
   const capturedPieceDelay = activeMove
@@ -182,6 +209,7 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
               piece.type === 'r' &&
               piece.color === activeMove.applied.color &&
               piece.square === castlingRookSquare)
+          const isRecoiling = Boolean(capturedInfo && movingPieceId === piece.id)
           return (
             <div
               key={piece.id}
@@ -191,7 +219,21 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
               data-square={piece.square}
             >
               <div className={`piece__inner ${isHopping ? 'piece__inner--hop' : ''}`}>
-                <PieceArt type={piece.type} color={piece.color} />
+                <div
+                  className={`piece__breath ${isMovingPiece ? 'piece__breath--moving' : ''}`}
+                  style={{ animationDelay: `${-((piece.id * 0.83) % 8)}s` }}
+                >
+                  <div
+                    className={`piece__recoil ${isRecoiling ? `piece__recoil--active piece__recoil--${piece.type}` : ''}`}
+                    style={
+                      isRecoiling
+                        ? { ...recoilVars, animationDelay: `${travel}ms` }
+                        : undefined
+                    }
+                  >
+                    <PieceArt type={piece.type} color={piece.color} />
+                  </div>
+                </div>
               </div>
             </div>
           )
@@ -200,22 +242,30 @@ export function Board({ snapshot, activeMove, busy, reducedMotion, humanColor, o
         {capturedInfo && activeMove && (
           <div
             key={`ghost-${activeMove.key}`}
-            className={`piece piece--ghost ${energyCapture ? 'piece--ghost-energy' : ''}`}
-            style={{
-              transform: `translate(${squareIndex(capturedInfo.square).file * 100}%, ${
-                squareIndex(capturedInfo.square).rank * 100
-              }%)`,
-              animationDelay: `${capturedPieceDelay}ms`,
-            }}
+            className={`piece piece--ghost piece--ghost-${capturedDeathMode} ${energyCapture ? 'piece--ghost-energy' : ''}`}
+            style={
+              {
+                transform: `translate(${squareIndex(capturedInfo.square).file * 100}%, ${
+                  squareIndex(capturedInfo.square).rank * 100
+                }%)`,
+                animationDelay: `${capturedPieceDelay}ms`,
+                '--capture-delay': `${capturedPieceDelay}ms`,
+                '--death-duration': `${deathDuration}ms`,
+              } as CSSProperties
+            }
+            data-captured-type={capturedInfo.type}
+            data-death-mode={capturedDeathMode}
           >
-            <div
-              className="piece__inner"
-              style={{ animationDelay: `${capturedPieceDelay}ms` }}
-            >
-              <PieceArt
-                type={capturedInfo.type}
-                color={activeMove.applied.color === 'w' ? 'b' : 'w'}
-              />
+            <div className="piece__inner">
+              <div
+                className="piece__death-body"
+                style={{ animationDelay: `${capturedPieceDelay}ms` }}
+              >
+                <PieceArt
+                  type={capturedInfo.type}
+                  color={activeMove.applied.color === 'w' ? 'b' : 'w'}
+                />
+              </div>
             </div>
           </div>
         )}

@@ -288,6 +288,29 @@
   animation: captureImpactFlash 240ms ease-out both;
 }
 
+/* Destello en el arma y una traza luminosa breve desde el atacante al objetivo. */
+.fx__muzzle-flash {
+  width: 4.2%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffef4 0 18%, var(--fx-hot) 42%, transparent 74%);
+  box-shadow: 0 0 8px 2px var(--fx-warm);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: muzzleFlash 180ms ease-out both;
+}
+
+.fx__muzzle-trail {
+  height: 1.5px;
+  margin-top: -0.75px;
+  transform-origin: 0 50%;
+  border-radius: 50%;
+  background: linear-gradient(90deg, rgba(255, 255, 246, 0.98), var(--fx-hot) 48%, transparent 100%);
+  box-shadow: 0 0 4px var(--fx-warm);
+  opacity: 0;
+  animation: muzzleTravel 190ms ease-out both;
+}
+
 /* Rey: fogonazo y trazadora */
 .fx__tracer {
   height: 2px;
@@ -310,6 +333,8 @@
 .fx--reduced .fx__ring,
 .fx--reduced .fx__flash,
 .fx--reduced .fx__capture-flash,
+.fx--reduced .fx__muzzle-flash,
+.fx--reduced .fx__muzzle-trail,
 .fx--reduced .fx__tracer {
   animation-duration: 140ms;
 }
@@ -452,6 +477,35 @@
   }
   100% {
     transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes muzzleFlash {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0;
+  }
+  18% {
+    transform: translate(-50%, -50%) scale(0.82);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 0;
+  }
+}
+
+@keyframes muzzleTravel {
+  0% {
+    transform: translate(0, -50%) rotate(var(--angle)) scaleX(0.03);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(0, -50%) rotate(var(--angle)) scaleX(1);
     opacity: 0;
   }
 }

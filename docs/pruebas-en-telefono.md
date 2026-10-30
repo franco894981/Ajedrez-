@@ -56,6 +56,17 @@ navegador gráfico ni audio.
 - [ ] La pieza se desliza suavemente del origen al destino durante unos 440 ms.
 - [ ] En una captura, el deslizador llega primero y el efecto del arma empieza
       al aterrizar; no se pisan ni se adelantan.
+- [ ] Al disparar se ve el fogonazo en la pieza atacante y una traza luminosa
+      breve que se dirige a la víctima.
+- [ ] El atacante retrocede/sacude sutilmente tras disparar; el peón da una
+      estocada corta con la espada, sin saltos de varios píxeles.
+- [ ] Peón, torre, alfil y caballo capturados caen de lado y se desvanecen en
+      aproximadamente medio segundo; la dama capturada hace un destello y se disuelve.
+- [ ] El efecto de muerte del rey se valida en la prueba sintética: una partida
+      legal termina en jaque mate y no captura físicamente al rey.
+- [ ] La casilla queda visualmente libre al terminar la muerte de la víctima.
+- [ ] El turno no avanza ni se aceptan toques hasta completar el impacto y la
+      animación de muerte.
 - [ ] Durante la animación no se puede mover otra pieza (no se duplican jugadas).
 - [ ] En ningún momento hace falta arrastrar ni mantener pulsado.
 
@@ -82,7 +93,10 @@ navegador gráfico ni audio.
 
 ## Animaciones y ajustes
 
-- [ ] **Animaciones reducidas** acorta los efectos y quita las brasas del fondo.
+- [ ] Las piezas inactivas respiran muy suavemente; la animación no distrae ni
+      desplaza las piezas de sus casillas.
+- [ ] **Animaciones reducidas** quita la respiración, acorta los efectos de
+      combate y quita las brasas del fondo.
 - [ ] Los efectos no ocultan la casilla más de un instante.
 - [ ] **Nueva partida** pide confirmación si hay una partida en curso y, al
       confirmar, vuelve a las 32 piezas.
