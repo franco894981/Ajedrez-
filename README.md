@@ -44,7 +44,7 @@ cualquier host, de modo que el proxy de la vista previa puede mostrarlo.
 2. Toca una pieza propia: aparecen sus movimientos legales.
    - Punto claro = movimiento normal.
    - Marco de brasa = captura legal.
-3. Toca la casilla destino. La pieza se desliza en unos 220 ms; si captura, el
+3. Toca la casilla destino. La pieza se desliza en unos 440 ms; si captura, el
    efecto del arma empieza al aterrizar.
 4. La IA responde automáticamente en la dificultad elegida. Mientras se resuelve
    una jugada (deslizamiento, efecto o búsqueda) el tablero queda bloqueado.
@@ -157,10 +157,10 @@ Efectos de captura (`src/ui/effects/`), breves y distintos:
 | Rey | Fogonazo de revólver, trazadora y humo breve |
 
 Los destellos son de escala local y no cubren casillas vecinas. El atacante se
-desliza durante 220 ms; el arma y el impacto esperan a su llegada. La secuencia
-visual completa queda por debajo de un segundo. Las explosiones son solo
-visuales: nunca eliminan piezas adicionales. No hay daño de área, fuego amigo,
-munición ni vida.
+desliza durante 440 ms; el arma y el impacto esperan a su llegada. Según la pieza,
+la secuencia visual completa dura entre unos 0,98 y 1,22 s. Las explosiones son
+solo visuales: nunca eliminan piezas adicionales. No hay daño de área, fuego
+amigo, munición ni vida.
 
 **Animaciones reducidas** (`Ajustes` o `prefers-reduced-motion`): traslados
 instantáneos, efectos de ~140 ms y fondo sin brasas ni pulsos.
@@ -169,7 +169,7 @@ instantáneos, efectos de ~140 ms y fondo sin brasas ni pulsos.
 
 - `GameSession` aplica la jugada y la registra **antes** de cualquier efecto.
 - El tablero se dibuja siempre desde `snapshot.pieces` (estado lógico). El
-  `transform` suaviza el paso del origen al destino durante 220 ms.
+  `transform` suaviza el paso del origen al destino durante 440 ms.
 - Los efectos de ataque esperan al aterrizaje; la víctima queda visible hasta
   el impacto y luego se desvanece como "fantasma" temporal fuera del estado.
 - El bloqueo (`locked`) impide toques y también rechaza movimientos directos

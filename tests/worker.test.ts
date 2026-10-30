@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { Chess } from 'chess.js'
 import { START_FEN } from '../src/game/engine'
 import { AIClient } from '../src/game/ai/aiClient'
-import { moveDuration, TRAVEL_MS } from '../src/ui/effects/motion'
+import { CAPTURE_FX_MS, moveDuration, TRAVEL_MS } from '../src/ui/effects/motion'
 
 interface Posted {
   type: string
@@ -73,14 +73,14 @@ describe('cliente de la IA sin Web Worker (respaldo en el hilo principal)', () =
 })
 
 describe('duración de animaciones', () => {
-  it('desliza cada pieza en un intervalo de 0,2 a 0,3 segundos', () => {
+  it('desliza cada pieza en un intervalo de 0,4 a 0,5 segundos', () => {
     for (const duration of Object.values(TRAVEL_MS)) {
-      expect(duration).toBeGreaterThanOrEqual(200)
-      expect(duration).toBeLessThanOrEqual(300)
+      expect(duration).toBeGreaterThanOrEqual(400)
+      expect(duration).toBeLessThanOrEqual(500)
     }
   })
 
-  it('cada captura dura entre medio segundo y un segundo', () => {
+  it('espera a que termine el deslizamiento y luego reserva el tiempo del efecto de captura', () => {
     const baseCapture = {
       from: 'e4' as const,
       to: 'd5' as const,
@@ -96,8 +96,8 @@ describe('duración de animaciones', () => {
 
     for (const piece of ['p', 'n', 'b', 'r', 'q', 'k'] as const) {
       const duration = moveDuration({ ...baseCapture, piece }, false)
-      expect(duration).toBeGreaterThanOrEqual(500)
-      expect(duration).toBeLessThanOrEqual(1000)
+      expect(duration).toBe(TRAVEL_MS[piece] + CAPTURE_FX_MS[piece] + 20)
+      expect(duration).toBeGreaterThan(TRAVEL_MS[piece])
     }
   })
 
